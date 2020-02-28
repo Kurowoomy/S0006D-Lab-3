@@ -1,45 +1,13 @@
 import pygame
-import Graph
+
 
 class Parser:
     def __init__(self):
-        self.squareDistance = 6
+        self.squareSize = 10
+        self.entitySize = 5
         self.nodePos = {}
 
-    def loadToGraph(self, fileName):
-        graph = Graph()
-        file = open(fileName, "r+")
-
-        row = file.readline()
-        x = 0
-        y = 0
-        while row != "":
-            for symbol in row:
-                if symbol != "\n":
-                    # add node to nodes
-                    graph.nodes.append((x, y))
-                    if symbol == "B":
-                        graph.nonWalkables.append((x, y))
-                    elif symbol == "M":
-                        graph.groundNodes.append((x, y))
-                        graph.fogNodes.append((x, y))
-                    elif symbol == "T":
-                        graph.treeNodes.append((x, y))
-                    elif symbol == "G":
-                        graph.swampNodes.append((x, y))
-                    elif symbol == "V":
-                        graph.nonWalkables.append((x, y))
-
-                    x += 1
-            x = 0
-            y += 1
-            row = file.readline()
-
-        file.close()
-
-        return graph
-
-    def drawSquares(self, fileName, screen):
+    def drawMap(self, fileName, screen):
         file = open(fileName, "r+")
 
         row = file.readline()
@@ -49,18 +17,33 @@ class Parser:
         posY = 0
         while row != "":
             for symbol in row:
-                if symbol == "X":
-                    pygame.draw.rect(screen, (0, 0, 0), [x, y, self.squareSize, self.squareSize])
-
                 if symbol != "\n":  # to access the middle of a square via the position of a node
-                    self.nodePos[(posX, posY)] = [x + Graphics.squareSize / 2, y + Graphics.squareSize / 2]
+                    if symbol == "B":
+                        pygame.draw.rect(screen, (23, 33, 33), [x, y, self.squareSize, self.squareSize])
+                    if symbol == "M" or symbol == "T":
+                        pygame.draw.rect(screen, (143, 227, 135), [x, y, self.squareSize, self.squareSize])
+                    if symbol == "V":
+                        pygame.draw.rect(screen, (74, 182, 191), [x, y, self.squareSize, self.squareSize])
+                    if symbol == "G":
+                        pygame.draw.rect(screen, (105, 166, 100), [x, y, self.squareSize, self.squareSize])
+
+                    self.nodePos[(posX, posY)] = (int(x + self.squareSize / 2), int(y + self.squareSize / 2))
                     posX += 1
 
-                x += self.squareDistance
+                x += self.squareSize
             x = 0
             posX = 0
-            y += self.squareDistance
+            y += self.squareSize
             posY += 1
             row = file.readline()
 
         file.close()
+
+    def drawEntities(self, entities, screen):
+        for entity in entities:
+            if entity.occupation == "worker":
+                pygame.draw.circle(screen, (255, 0, 0), self.nodePos[entity.pos], 5)
+
+    def drawFog(self, fogNodes, screen):
+        for node in fogNodes:  # TODO: fixa positionen av dimman, hamnar i mitten av rutan pga nodePos
+            pygame.draw.rect(screen, (230, 230, 230), [self.nodePos[node][0], self.nodePos[node][1], self.squareSize, self.squareSize])

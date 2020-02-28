@@ -41,3 +41,50 @@ class Graph:
             if [node[0], node[1] + 1] in self.nonWalkables or [node[0] + 1, node[1]] in self.nonWalkables:
                 return False
         return True
+
+    def loadToGraph(self, fileName):
+        file = open(fileName, "r+")
+
+        row = file.readline()
+        x = 0
+        y = 0
+        while row != "":
+            for symbol in row:
+                if symbol != "\n":
+                    # add node to nodes
+                    self.nodes.append((x, y))
+                    if symbol == "B":
+                        self.nonWalkables.append((x, y))
+                    elif symbol == "M":
+                        self.groundNodes.append((x, y))
+                        self.fogNodes.append((x, y))
+                    elif symbol == "T":
+                        self.treeNodes.append((x, y))
+                    elif symbol == "G":
+                        self.swampNodes.append((x, y))
+                    elif symbol == "V":
+                        self.nonWalkables.append((x, y))
+
+                    x += 1
+            x = 0
+            y += 1
+            row = file.readline()
+
+        file.close()
+
+    def setStartPositions(self, startPos):
+        startPositions = [(0, 0), (1, 0), (2, 0),
+                          (0, 1), (1, 1), (2, 1),
+                          (0, 2), (1, 2), (2, 2)]
+        for pos in startPositions:
+            posNode = (startPos[0] + pos[0], startPos[1] + pos[1])
+            self.startNodes.append(posNode)
+            self.fogNodes.remove(posNode)
+
+    def setFog(self):
+        for node in self.swampNodes:
+            self.fogNodes.append(node)
+        for node in self.groundNodes:
+            self.fogNodes.append(node)
+        for node in self.treeNodes:
+            self.fogNodes.append(node)

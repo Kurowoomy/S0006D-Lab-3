@@ -1,7 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="e8cd8ba4-f360-4213-b353-479d84d261fd" name="Default Changelist" comment="" />
+    <list default="true" id="e8cd8ba4-f360-4213-b353-479d84d261fd" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/dictionaries/emmeli_8_local.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Entity.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/EntityManager.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Lab3Map.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/WorldManager.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Graph.py" beforeDir="false" afterPath="$PROJECT_DIR$/Graph.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Karta Laboration 2.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Parser.py" beforeDir="false" afterPath="$PROJECT_DIR$/Parser.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -15,16 +27,29 @@
     </option>
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/S0006D-Lab-3" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GithubPullRequestsUISettings">
+    <option name="hiddenUrls">
+      <set>
+        <option value="https://github.com/Kurowoomy/S0006D-Lab-3.git" />
+      </set>
+    </option>
   </component>
   <component name="ProjectId" id="1YLOna3SytSh1zDTf2KqpE6DVJf" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showExcludedFiles" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
+    <property name="settings.editor.selected.configurable" value="project.propVCSSupport.Mappings" />
   </component>
   <component name="RunManager">
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
@@ -67,30 +92,64 @@
     </task>
     <servers />
   </component>
+  <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+    <ignored-roots>
+      <path value="$PROJECT_DIR$/S0006D-Lab-3" />
+    </ignored-roots>
+  </component>
   <component name="WindowStateProjectService">
     <state x="414" y="241" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1582822515132">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
     <state x="414" y="241" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.1170@0.0.1920.1170" timestamp="1582822515132" />
+    <state x="99" y="184" key="CommitChangelistDialog2" timestamp="1582885947222">
+      <screen x="0" y="0" width="1920" height="1170" />
+    </state>
+    <state x="99" y="184" key="CommitChangelistDialog2/0.0.1920.1170@0.0.1920.1170" timestamp="1582885947222" />
     <state x="740" y="341" key="FileChooserDialogImpl" timestamp="1582730053358">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
     <state x="740" y="341" key="FileChooserDialogImpl/0.0.1920.1170@0.0.1920.1170" timestamp="1582730053358" />
-    <state width="1899" height="325" key="GridCell.Tab.0.bottom" timestamp="1582822578083">
+    <state width="936" height="325" key="GridCell.Tab.0.bottom" timestamp="1582885800514">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
-    <state width="1899" height="325" key="GridCell.Tab.0.bottom/0.0.1920.1170@0.0.1920.1170" timestamp="1582822578083" />
-    <state width="1899" height="325" key="GridCell.Tab.0.center" timestamp="1582822578082">
+    <state width="936" height="325" key="GridCell.Tab.0.bottom/0.0.1920.1170@0.0.1920.1170" timestamp="1582885800514" />
+    <state width="936" height="325" key="GridCell.Tab.0.center" timestamp="1582885800514">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
-    <state width="1899" height="325" key="GridCell.Tab.0.center/0.0.1920.1170@0.0.1920.1170" timestamp="1582822578082" />
-    <state width="1899" height="325" key="GridCell.Tab.0.left" timestamp="1582822578082">
+    <state width="936" height="325" key="GridCell.Tab.0.center/0.0.1920.1170@0.0.1920.1170" timestamp="1582885800514" />
+    <state width="936" height="325" key="GridCell.Tab.0.left" timestamp="1582885800514">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
-    <state width="1899" height="325" key="GridCell.Tab.0.left/0.0.1920.1170@0.0.1920.1170" timestamp="1582822578082" />
-    <state width="1899" height="325" key="GridCell.Tab.0.right" timestamp="1582822578083">
+    <state width="936" height="325" key="GridCell.Tab.0.left/0.0.1920.1170@0.0.1920.1170" timestamp="1582885800514" />
+    <state width="936" height="325" key="GridCell.Tab.0.right" timestamp="1582885800514">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
-    <state width="1899" height="325" key="GridCell.Tab.0.right/0.0.1920.1170@0.0.1920.1170" timestamp="1582822578083" />
+    <state width="936" height="325" key="GridCell.Tab.0.right/0.0.1920.1170@0.0.1920.1170" timestamp="1582885800514" />
+    <state width="936" height="399" key="GridCell.Tab.1.bottom" timestamp="1582885710973">
+      <screen x="0" y="0" width="1920" height="1170" />
+    </state>
+    <state width="936" height="399" key="GridCell.Tab.1.bottom/0.0.1920.1170@0.0.1920.1170" timestamp="1582885710973" />
+    <state width="936" height="399" key="GridCell.Tab.1.center" timestamp="1582885710973">
+      <screen x="0" y="0" width="1920" height="1170" />
+    </state>
+    <state width="936" height="399" key="GridCell.Tab.1.center/0.0.1920.1170@0.0.1920.1170" timestamp="1582885710973" />
+    <state width="936" height="399" key="GridCell.Tab.1.left" timestamp="1582885710973">
+      <screen x="0" y="0" width="1920" height="1170" />
+    </state>
+    <state width="936" height="399" key="GridCell.Tab.1.left/0.0.1920.1170@0.0.1920.1170" timestamp="1582885710973" />
+    <state width="936" height="399" key="GridCell.Tab.1.right" timestamp="1582885710973">
+      <screen x="0" y="0" width="1920" height="1170" />
+    </state>
+    <state width="936" height="399" key="GridCell.Tab.1.right/0.0.1920.1170@0.0.1920.1170" timestamp="1582885710973" />
+    <state x="0" y="232" key="SettingsEditor" timestamp="1582825855806">
+      <screen x="0" y="0" width="1920" height="1170" />
+    </state>
+    <state x="0" y="232" key="SettingsEditor/0.0.1920.1170@0.0.1920.1170" timestamp="1582825855806" />
+    <state x="143" y="263" width="672" height="678" key="search.everywhere.popup" timestamp="1582883757297">
+      <screen x="0" y="0" width="1920" height="1170" />
+    </state>
+    <state x="143" y="263" width="672" height="678" key="search.everywhere.popup/0.0.1920.1170@0.0.1920.1170" timestamp="1582883757297" />
   </component>
 </project>
