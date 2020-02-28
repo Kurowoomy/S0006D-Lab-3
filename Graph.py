@@ -18,7 +18,7 @@ class Graph:
                    (-1, 1), (1, 1)]
         result = []
         for pos in directions:
-            neighbour = [node[0] + pos[0], node[1] + pos[1]]
+            neighbour = (node[0] + pos[0], node[1] + pos[1])
             if neighbour in self.nodes and neighbour not in self.nonWalkables:
                 if pos in corners and not self.cornerIsReachable(neighbour, node):
                     pass
@@ -57,7 +57,6 @@ class Graph:
                         self.nonWalkables.append((x, y))
                     elif symbol == "M":
                         self.groundNodes.append((x, y))
-                        self.fogNodes.append((x, y))
                     elif symbol == "T":
                         self.treeNodes.append((x, y))
                     elif symbol == "G":
@@ -82,9 +81,5 @@ class Graph:
             self.fogNodes.remove(posNode)
 
     def setFog(self):
-        for node in self.swampNodes:
-            self.fogNodes.append(node)
-        for node in self.groundNodes:
-            self.fogNodes.append(node)
-        for node in self.treeNodes:
+        for node in self.nodes:
             self.fogNodes.append(node)

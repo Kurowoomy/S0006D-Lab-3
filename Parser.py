@@ -4,8 +4,9 @@ import pygame
 class Parser:
     def __init__(self):
         self.squareSize = 10
-        self.entitySize = 5
+        self.entitySize = 1
         self.nodePos = {}
+        self.treeSize = 4
 
     def drawMap(self, fileName, screen):
         file = open(fileName, "r+")
@@ -23,7 +24,7 @@ class Parser:
                     if symbol == "M" or symbol == "T":
                         pygame.draw.rect(screen, (143, 227, 135), [x, y, self.squareSize, self.squareSize])
                     if symbol == "V":
-                        pygame.draw.rect(screen, (74, 182, 191), [x, y, self.squareSize, self.squareSize])
+                        pygame.draw.rect(screen, (124, 198, 210), [x, y, self.squareSize, self.squareSize])
                     if symbol == "G":
                         pygame.draw.rect(screen, (105, 166, 100), [x, y, self.squareSize, self.squareSize])
 
@@ -42,8 +43,17 @@ class Parser:
     def drawEntities(self, entities, screen):
         for entity in entities:
             if entity.occupation == "worker":
-                pygame.draw.circle(screen, (255, 0, 0), self.nodePos[entity.pos], 5)
+                pygame.draw.circle(screen, (255, 0, 0), self.nodePos[entity.pos], self.entitySize)
 
     def drawFog(self, fogNodes, screen):
-        for node in fogNodes:  # TODO: fixa positionen av dimman, hamnar i mitten av rutan pga nodePos
-            pygame.draw.rect(screen, (230, 230, 230), [self.nodePos[node][0], self.nodePos[node][1], self.squareSize, self.squareSize])
+        for node in fogNodes:
+            x = self.nodePos[node][0] - self.squareSize/2
+            y = self.nodePos[node][1] - self.squareSize/2
+            pygame.draw.rect(screen, (150, 150, 150), [x, y, self.squareSize, self.squareSize])
+
+    def drawObjects(self, worldManager, screen):
+        for tree in worldManager.trees:
+            pointList = ((self.nodePos[tree.pos][0], self.nodePos[tree.pos][1] - self.treeSize),
+                         (self.nodePos[tree.pos][0] - self.treeSize, self.nodePos[tree.pos][1] + self.treeSize),
+                         (self.nodePos[tree.pos][0] + self.treeSize, self.nodePos[tree.pos][1] + self.treeSize))
+            pygame.draw.polygon(screen, (47, 96, 64), pointList)
