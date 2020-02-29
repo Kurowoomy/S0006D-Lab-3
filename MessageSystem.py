@@ -23,16 +23,15 @@ class MessageDispatcher:
             heapq.heappush(MessageDispatcher.priorityQ, (dispatchTime, telegram))
 
     def dispatchDelayedMessages(self):  # TODO: fixa så dispatchDelayedMessages används
-        pass
-        # for telegram in MessageDispatcher.priorityQ:
-        #     if telegram.dispatchTime <= time.perf_counter():  # TODO: fortsätt fixa dispatchdelayedMessage/buggar
-        #         telegram[1].reciever.handleMessage(telegram)
-        #         heapq.heappop(MessageDispatcher.priorityQ)[1]
+        currentTime = time.perf_counter()
+        if len(MessageDispatcher.priorityQ) > 0:
+            while MessageDispatcher.priorityQ[0][1].dispatchTime <= currentTime:
+                MessageDispatcher.priorityQ[0][1].reciever.handleMessage(MessageDispatcher.priorityQ[0][1])
+                heapq.heappop(MessageDispatcher.priorityQ)[1]
+                if len(MessageDispatcher.priorityQ) <= 0:
+                    break
 
-        # amount = len(MessageDispatcher.priorityQ) - 1
-        #
-        # while amount >= 0:  # checks if it's time to let entities handle telegram message
-        #     if MessageDispatcher.priorityQ[amount].dispatchTime <= time.clock():
-        #         MessageDispatcher.priorityQ[amount].recieverEntity.handleMessage(MessageDispatcher.priorityQ[amount])
-        #         MessageDispatcher.priorityQ.remove(MessageDispatcher.priorityQ[amount])
-        #     amount -= 1
+        # for telegram in MessageDispatcher.priorityQ:
+        #     if telegram[1].dispatchTime <= time.perf_counter():  # TODO: fortsätt fixa dispatchdelayedMessage/buggar
+        #         telegram[1].reciever.handleMessage(telegram[1])
+        #         heapq.heappop(MessageDispatcher.priorityQ)[1]

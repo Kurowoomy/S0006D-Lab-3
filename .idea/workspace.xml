@@ -2,18 +2,14 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e8cd8ba4-f360-4213-b353-479d84d261fd" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/Enumerations.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/MessageSystem.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Objects.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/StateMachine.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/States.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/emmeli_8_local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/emmeli_8_local.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Algorithms.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Entity.py" beforeDir="false" afterPath="$PROJECT_DIR$/Entity.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/EntityManager.py" beforeDir="false" afterPath="$PROJECT_DIR$/EntityManager.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Enumerations.py" beforeDir="false" afterPath="$PROJECT_DIR$/Enumerations.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Graph.py" beforeDir="false" afterPath="$PROJECT_DIR$/Graph.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MessageSystem.py" beforeDir="false" afterPath="$PROJECT_DIR$/MessageSystem.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Parser.py" beforeDir="false" afterPath="$PROJECT_DIR$/Parser.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/WorldManager.py" beforeDir="false" afterPath="$PROJECT_DIR$/WorldManager.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/States.py" beforeDir="false" afterPath="$PROJECT_DIR$/States.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -121,38 +117,38 @@
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
     <state x="740" y="341" key="FileChooserDialogImpl/0.0.1920.1170@0.0.1920.1170" timestamp="1582730053358" />
-    <state width="1899" height="325" key="GridCell.Tab.0.bottom" timestamp="1582911193592">
+    <state width="1899" height="325" key="GridCell.Tab.0.bottom" timestamp="1582973900259">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
-    <state width="1899" height="325" key="GridCell.Tab.0.bottom/0.0.1920.1170@0.0.1920.1170" timestamp="1582911193592" />
-    <state width="1899" height="325" key="GridCell.Tab.0.center" timestamp="1582911193591">
+    <state width="1899" height="325" key="GridCell.Tab.0.bottom/0.0.1920.1170@0.0.1920.1170" timestamp="1582973900259" />
+    <state width="1899" height="325" key="GridCell.Tab.0.center" timestamp="1582973900258">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
-    <state width="1899" height="325" key="GridCell.Tab.0.center/0.0.1920.1170@0.0.1920.1170" timestamp="1582911193591" />
-    <state width="1899" height="325" key="GridCell.Tab.0.left" timestamp="1582911193591">
+    <state width="1899" height="325" key="GridCell.Tab.0.center/0.0.1920.1170@0.0.1920.1170" timestamp="1582973900258" />
+    <state width="1899" height="325" key="GridCell.Tab.0.left" timestamp="1582973900258">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
-    <state width="1899" height="325" key="GridCell.Tab.0.left/0.0.1920.1170@0.0.1920.1170" timestamp="1582911193591" />
-    <state width="1899" height="325" key="GridCell.Tab.0.right" timestamp="1582911193592">
+    <state width="1899" height="325" key="GridCell.Tab.0.left/0.0.1920.1170@0.0.1920.1170" timestamp="1582973900258" />
+    <state width="1899" height="325" key="GridCell.Tab.0.right" timestamp="1582973900259">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
-    <state width="1899" height="325" key="GridCell.Tab.0.right/0.0.1920.1170@0.0.1920.1170" timestamp="1582911193592" />
-    <state width="1899" height="258" key="GridCell.Tab.1.bottom" timestamp="1582911050411">
+    <state width="1899" height="325" key="GridCell.Tab.0.right/0.0.1920.1170@0.0.1920.1170" timestamp="1582973900259" />
+    <state width="1899" height="258" key="GridCell.Tab.1.bottom" timestamp="1582973267546">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
-    <state width="1899" height="258" key="GridCell.Tab.1.bottom/0.0.1920.1170@0.0.1920.1170" timestamp="1582911050411" />
-    <state width="1899" height="258" key="GridCell.Tab.1.center" timestamp="1582911050411">
+    <state width="1899" height="258" key="GridCell.Tab.1.bottom/0.0.1920.1170@0.0.1920.1170" timestamp="1582973267546" />
+    <state width="1899" height="258" key="GridCell.Tab.1.center" timestamp="1582973267546">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
-    <state width="1899" height="258" key="GridCell.Tab.1.center/0.0.1920.1170@0.0.1920.1170" timestamp="1582911050411" />
-    <state width="1899" height="258" key="GridCell.Tab.1.left" timestamp="1582911050411">
+    <state width="1899" height="258" key="GridCell.Tab.1.center/0.0.1920.1170@0.0.1920.1170" timestamp="1582973267546" />
+    <state width="1899" height="258" key="GridCell.Tab.1.left" timestamp="1582973267546">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
-    <state width="1899" height="258" key="GridCell.Tab.1.left/0.0.1920.1170@0.0.1920.1170" timestamp="1582911050411" />
-    <state width="1899" height="258" key="GridCell.Tab.1.right" timestamp="1582911050411">
+    <state width="1899" height="258" key="GridCell.Tab.1.left/0.0.1920.1170@0.0.1920.1170" timestamp="1582973267546" />
+    <state width="1899" height="258" key="GridCell.Tab.1.right" timestamp="1582973267546">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
-    <state width="1899" height="258" key="GridCell.Tab.1.right/0.0.1920.1170@0.0.1920.1170" timestamp="1582911050411" />
+    <state width="1899" height="258" key="GridCell.Tab.1.right/0.0.1920.1170@0.0.1920.1170" timestamp="1582973267546" />
     <state x="0" y="232" key="SettingsEditor" timestamp="1582825855806">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
@@ -161,5 +157,21 @@
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
     <state x="143" y="263" width="672" height="678" key="search.everywhere.popup/0.0.1920.1170@0.0.1920.1170" timestamp="1582905515694" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <default-breakpoints>
+        <breakpoint type="python-exception">
+          <properties notifyOnTerminate="true" exception="BaseException">
+            <option name="notifyOnTerminate" value="true" />
+          </properties>
+        </breakpoint>
+      </default-breakpoints>
+    </breakpoint-manager>
+    <watches-manager>
+      <configuration name="PythonConfigurationType">
+        <watch expression="worldManager.entityManager.entities[17]" />
+      </configuration>
+    </watches-manager>
   </component>
 </project>

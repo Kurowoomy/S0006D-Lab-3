@@ -40,10 +40,12 @@ class Parser:
 
         file.close()
 
-    def drawEntities(self, entities, screen):
-        for entity in entities:
+    def drawEntities(self, worldManager, screen):
+        for entity in worldManager.entityManager.entities:
             if entity.occupation == "worker":
                 pygame.draw.circle(screen, (255, 0, 0), self.nodePos[entity.pos], self.entitySize)
+            if entity.occupation == "discoverer":
+                pygame.draw.circle(screen, (0, 0, 255), self.nodePos[entity.pos], self.entitySize)
 
     def drawFog(self, fogNodes, screen):
         for node in fogNodes:

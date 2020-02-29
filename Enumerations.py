@@ -6,3 +6,4 @@ class message_type(enum.Enum):
     makeCharcoal = 2
     cancelUpgrade = 3
     isUpgradedDiscoverer = 4
+    move = 5

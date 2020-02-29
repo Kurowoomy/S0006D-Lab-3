@@ -59,6 +59,7 @@ class Graph:
                         self.groundNodes.append((x, y))
                     elif symbol == "T":
                         self.treeNodes.append((x, y))
+                        self.groundNodes.append((x, y))
                     elif symbol == "G":
                         self.swampNodes.append((x, y))
                     elif symbol == "V":
@@ -81,5 +82,9 @@ class Graph:
             self.fogNodes.remove(posNode)
 
     def setFog(self):
-        for node in self.nodes:
+        for node in self.swampNodes:
+            self.fogNodes.append(node)
+        for node in self.groundNodes:
+            self.fogNodes.append(node)
+        for node in self.treeNodes:
             self.fogNodes.append(node)
