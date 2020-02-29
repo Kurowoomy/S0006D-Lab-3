@@ -22,7 +22,7 @@ class MessageDispatcher:
         else:
             heapq.heappush(MessageDispatcher.priorityQ, (dispatchTime, telegram))
 
-    def dispatchDelayedMessages(self):  # TODO: fixa så dispatchDelayedMessages används
+    def dispatchDelayedMessages(self):
         currentTime = time.perf_counter()
         if len(MessageDispatcher.priorityQ) > 0:
             while MessageDispatcher.priorityQ[0][1].dispatchTime <= currentTime:
@@ -30,8 +30,3 @@ class MessageDispatcher:
                 heapq.heappop(MessageDispatcher.priorityQ)[1]
                 if len(MessageDispatcher.priorityQ) <= 0:
                     break
-
-        # for telegram in MessageDispatcher.priorityQ:
-        #     if telegram[1].dispatchTime <= time.perf_counter():  # TODO: fortsätt fixa dispatchdelayedMessage/buggar
-        #         telegram[1].reciever.handleMessage(telegram[1])
-        #         heapq.heappop(MessageDispatcher.priorityQ)[1]

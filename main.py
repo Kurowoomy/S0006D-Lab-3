@@ -5,7 +5,6 @@ import EntityManager
 import WorldManager
 import Graph
 import StateMachine
-import States
 
 
 pygame.init()
@@ -18,10 +17,10 @@ worldManager.entityManager.worldManager = worldManager
 mapName = "Lab3Map.txt"
 worldManager.graph.loadToGraph(mapName)
 worldManager.graph.setFog()
-worldManager.graph.setStartPositions((38, 58))
+worldManager.graph.setStartPositions((75, 96))
 
 # create entities
-entityAmount = 18
+entityAmount = 30
 startPosIndex = 0
 ID = 0
 for entity in range(entityAmount):
@@ -29,9 +28,10 @@ for entity in range(entityAmount):
         startPosIndex = 0
     newEntity = Entity.Entity("worker", worldManager.graph.startNodes[startPosIndex],
                               worldManager.entityManager, ID)
-    stateMachine = StateMachine.StateMachine(worldManager.states.lookForTree, newEntity)
+    stateMachine = StateMachine.StateMachine(worldManager.states.wandering, newEntity)
     newEntity.stateMachine = stateMachine
     worldManager.entityManager.entities.append(newEntity)
+    worldManager.entityManager.workers.append(newEntity)
     startPosIndex += 1
     ID += 1
 

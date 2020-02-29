@@ -55,7 +55,10 @@ class Parser:
 
     def drawObjects(self, worldManager, screen):
         for tree in worldManager.trees:
-            pointList = ((self.nodePos[tree.pos][0], self.nodePos[tree.pos][1] - self.treeSize),
-                         (self.nodePos[tree.pos][0] - self.treeSize, self.nodePos[tree.pos][1] + self.treeSize),
-                         (self.nodePos[tree.pos][0] + self.treeSize, self.nodePos[tree.pos][1] + self.treeSize))
+            pointList = ((self.nodePos[worldManager.trees[tree].pos][0],
+                          self.nodePos[worldManager.trees[tree].pos][1] - self.treeSize),
+                         (self.nodePos[worldManager.trees[tree].pos][0] - self.treeSize,
+                          self.nodePos[worldManager.trees[tree].pos][1] + self.treeSize),
+                         (self.nodePos[worldManager.trees[tree].pos][0] + self.treeSize,
+                          self.nodePos[worldManager.trees[tree].pos][1] + self.treeSize))
             pygame.draw.polygon(screen, (47, 96, 64), pointList)

@@ -1,8 +1,9 @@
 import collections
 import heapq
+import random
 
 
-def findNearestFogNode(graph, start):
+def findNearestFogNodeBFS(graph, start):
     queue = collections.deque()
     queue.append(start)
     path = {tuple(start): None}
@@ -10,7 +11,7 @@ def findNearestFogNode(graph, start):
     while len(queue) != 0:
         currentNode = queue.popleft()  # treat queue as a stack by using popleft
 
-        if currentNode in graph.fogNodes:
+        if currentNode in graph.fogNodes and currentNode not in graph.occupiedNodes:
             return currentNode
 
         for neighbour in graph.neighbours(currentNode):
@@ -19,6 +20,16 @@ def findNearestFogNode(graph, start):
                 path[tuple(neighbour)] = currentNode
 
     return None
+
+
+def findNearestRandomFogNode(graph):
+    notTestedNodes = graph.fogNodes.copy()
+    currentNode = random.choice(notTestedNodes)
+    notTestedNodes.remove(currentNode)
+    while currentNode in graph.occupiedNodes:
+        currentNode = random.choice(notTestedNodes)
+        notTestedNodes.remove(currentNode)
+    return currentNode
 
 
 def findPathToNode(graph, start, goal):
@@ -42,6 +53,29 @@ def findPathToNode(graph, start, goal):
                 heapq.heappush(priorityQ, (priority, tuple(neighbour)))
 
     return path
+
+
+def findPathAndDistance(graph, start, goal):
+    priorityQ = []
+    heapq.heappush(priorityQ, (0, tuple(start)))
+    path = {tuple(start): None}
+    costSoFar = {tuple(start): 0}
+
+    while len(priorityQ) != 0:
+        currentNode = heapq.heappop(priorityQ)[1]
+
+        if currentNode == tuple(goal):
+            break
+
+        for neighbour in graph.neighbours(currentNode):
+            newCost = costSoFar[currentNode] + tileDependentHeuristic(graph, neighbour, currentNode)
+            if (tuple(neighbour) not in costSoFar) or (newCost < costSoFar[tuple(neighbour)]):
+                costSoFar[tuple(neighbour)] = newCost
+                priority = newCost + heuristic(goal, neighbour)
+                path[tuple(neighbour)] = currentNode
+                heapq.heappush(priorityQ, (priority, tuple(neighbour)))
+
+    return path, costSoFar[tuple(goal)]
 
 
 def heuristic(goal, next):

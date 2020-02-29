@@ -7,3 +7,5 @@ class message_type(enum.Enum):
     cancelUpgrade = 3
     isUpgradedDiscoverer = 4
     move = 5
+    treeAppeared = 6
+    stopUpgrading = 7

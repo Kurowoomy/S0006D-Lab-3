@@ -1,5 +1,6 @@
 import States
 import Enumerations
+import Algorithms
 
 
 class Entity:
@@ -10,12 +11,13 @@ class Entity:
         self.stateMachine = None
         self.ID = ID
         self.variables = {}
-        self.route = None
+        self.route = []
         self.speed = 0.05  # lower value is faster, 1 is normal speed
+        self.destinationDistance = None
 
     def update(self):
         # upgrade to discoverer if needed
-        if self.occupation == "worker" and self.stateMachine.currentState is States.States.lookForTree:
+        if self.occupation == "worker" and self.stateMachine.currentState is States.States.wandering:
 
             neighbours = self.entityManager.worldManager.graph.neighbours(self.pos)
             for neighbour in neighbours:
@@ -28,24 +30,48 @@ class Entity:
         self.stateMachine.update()
 
     def noOneIsDiscoveringAt(self, node):
-        for entity in self.entityManager.entities:
-            if entity.pos == node:
-                if entity.occupation == "discoverer" or \
-                        entity.stateMachine.currentState is States.States.upgradingToDiscoverer:
-                    return False
+        for entity in self.entityManager.discoverers:
+            if entity.pos == node or entity.pos in self.entityManager.worldManager.graph.neighbours(node):
+                return False
+        for entity in self.entityManager.isUpgrading:
+            if entity.pos == node or entity.pos in self.entityManager.worldManager.graph.neighbours(node):
+                return False
         return True
 
     def handleMessage(self, telegram):
         if telegram.msg == Enumerations.message_type.isUpgradedDiscoverer:
             self.occupation = "discoverer"
+            self.entityManager.discoverers.append(self)
+            self.entityManager.isUpgrading.remove(self)
+            self.entityManager.workers.remove(self)
             self.variables["nextFogNode"] = None
             self.stateMachine.changeState(States.States.discover)
-        if telegram.msg == Enumerations.message_type.move:
+
+        elif telegram.msg == Enumerations.message_type.move:
             self.pos = telegram.extraInfo
             if self.occupation == "discoverer":
                 self.stateMachine.changeState(States.States.discover)
-            else:
-                pass
+            elif self.occupation == "worker":
+                self.stateMachine.changeState(States.States.wandering)
+
+        elif telegram.msg == Enumerations.message_type.treeAppeared:
+            # TODO: make worker lookForTree(s?)
+            # handle message if currentState is wandering
+            if self.stateMachine.currentState is States.States.wandering:
+                # check if tree is occupied
+                if telegram.extraInfo in self.entityManager.worldManager.graph.occupiedNodes:
+                    # if occupied, check if distance is shorter for self
+                    distance = Algorithms.heuristic(telegram.extraInfo, self.pos)
+                    otherDistance = Algorithms.heuristic\
+                        (telegram.extraInfo, self.entityManager.worldManager.trees[telegram.extraInfo].owner.pos)
+                        # if shorter for self, change worker of tree to self, changeState(ChopTree)
+                    if distance < otherDistance:
+                        self.entityManager.worldManager.trees[telegram.extraInfo].owner = self
+                        self.stateMachine.changeState(States.States.ChopTree)
+                # if not occupied, change worker tree to self, changeState(ChopTree)
+                else:
+                    self.entityManager.worldManager.trees[telegram.extraInfo].owner = self
+                    self.stateMachine.changeState(States.States.ChopTree)
 
     def move(self, nextNode, graph):
         diagonal = [(-1, -1), (1, -1),

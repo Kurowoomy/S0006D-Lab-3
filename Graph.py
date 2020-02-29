@@ -9,6 +9,7 @@ class Graph:
         self.groundNodes = []
         self.swampNodes = []
         self.startNodes = []
+        self.occupiedNodes = []
 
     def neighbours(self, node):
         directions = [(-1, -1), (0, -1), (1, -1),
