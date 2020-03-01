@@ -1,6 +1,7 @@
 import States
 import Enumerations
 import Algorithms
+import Objects
 
 
 class Entity:
@@ -14,10 +15,15 @@ class Entity:
         self.route = []
         self.speed = 0.05  # lower value is faster, 1 is normal speed
         self.destinationDistance = None
+        self.destination = []  # [0] is (x, y), [1] is location_type
+        self.isWorking = False
+        # TODO: skapa kilnManager
+        # TODO: fixa variabel för trädet worker:n har fält så den kan för det till närmaste kilnManager
 
     def update(self):
         # upgrade to discoverer if needed
-        if self.occupation == "worker" and self.stateMachine.currentState is States.States.wandering:
+        if self.occupation == "worker" and self.stateMachine.currentState is States.States.wandering and \
+                self.entityManager.worldManager.needDiscoverers:
 
             neighbours = self.entityManager.worldManager.graph.neighbours(self.pos)
             for neighbour in neighbours:
@@ -45,33 +51,109 @@ class Entity:
             self.entityManager.isUpgrading.remove(self)
             self.entityManager.workers.remove(self)
             self.variables["nextFogNode"] = None
+            if len(self.entityManager.discoverers) >= 20:
+                self.entityManager.worldManager.needDiscoverers = False
+
             self.stateMachine.changeState(States.States.discover)
 
         elif telegram.msg == Enumerations.message_type.move:
             self.pos = telegram.extraInfo
+
             if self.occupation == "discoverer":
                 self.stateMachine.changeState(States.States.discover)
-            elif self.occupation == "worker":
+
+            elif self.occupation == "worker" and not self.isWorking:
                 self.stateMachine.changeState(States.States.wandering)
 
+            elif self.occupation == "worker" and self.isWorking:
+                if self.pos == self.destination[0] and self.destination[1] == Enumerations.location_type.tree:
+                    self.stateMachine.changeState(States.States.chopTree)
+                else:
+                    self.stateMachine.changeState(States.States.moveToDestination)
+
+            elif self.occupation == "builder":
+                if self.isWorking and self.pos == self.destination[0] and \
+                        self.destination[1] == Enumerations.location_type.kiln:
+                    self.stateMachine.changeState(States.States.build)
+                elif self.isWorking:
+                    self.stateMachine.changeState(States.States.moveToDestination)
+                else:
+                    self.stateMachine.changeState(States.States.idle)
+
         elif telegram.msg == Enumerations.message_type.treeAppeared:
-            # TODO: make worker lookForTree(s?)
             # handle message if currentState is wandering
-            if self.stateMachine.currentState is States.States.wandering:
-                # check if tree is occupied
-                if telegram.extraInfo in self.entityManager.worldManager.graph.occupiedNodes:
+            if not self.isWorking:
+                # check if tree has owner
+                if self.entityManager.worldManager.trees[telegram.extraInfo].owner is not None:
                     # if occupied, check if distance is shorter for self
                     distance = Algorithms.heuristic(telegram.extraInfo, self.pos)
-                    otherDistance = Algorithms.heuristic\
+                    otherDistance = Algorithms.heuristic \
                         (telegram.extraInfo, self.entityManager.worldManager.trees[telegram.extraInfo].owner.pos)
-                        # if shorter for self, change worker of tree to self, changeState(ChopTree)
+                    # if shorter for self, change worker of tree to self, changeState(ChopTree)
                     if distance < otherDistance:
+                        # make previous owner change state to wandering
+                        self.entityManager.worldManager.trees[telegram.extraInfo].owner.destination.pop(0)
+                        self.entityManager.worldManager.trees[telegram.extraInfo].owner.destination.pop(0)
+                        self.entityManager.worldManager.trees[telegram.extraInfo].owner.route.clear()
+                        self.entityManager.worldManager.trees[telegram.extraInfo].owner. \
+                            stateMachine.changeState(States.States.wandering)
+
                         self.entityManager.worldManager.trees[telegram.extraInfo].owner = self
-                        self.stateMachine.changeState(States.States.ChopTree)
+                        self.destination.append(telegram.extraInfo)
+                        self.destination.append(Enumerations.location_type.tree)
+                        self.stateMachine.changeState(States.States.chopTree)
+
                 # if not occupied, change worker tree to self, changeState(ChopTree)
                 else:
                     self.entityManager.worldManager.trees[telegram.extraInfo].owner = self
-                    self.stateMachine.changeState(States.States.ChopTree)
+                    # change destination to tree
+                    self.destination.append(telegram.extraInfo)
+                    self.destination.append(Enumerations.location_type.tree)
+                    self.stateMachine.changeState(States.States.chopTree)
+
+        elif telegram.msg == Enumerations.message_type.treeIsChopped:
+            self.entityManager.worldManager.gatheredTreesAvailable += 1
+            if self.entityManager.worldManager.gatheredTreesAvailable >= 10 and \
+                    len(self.entityManager.builders) >= 0 and self.entityManager.worldManager.needKiln:
+                for builder in self.entityManager.builders:
+                    if not builder.isWorking:
+                        self.entityManager.worldManager.needKiln = False
+                        builder.stateMachine.changeState(States.States.build)
+
+            self.entityManager.worldManager.trees.pop(self.pos, telegram.extraInfo)
+            self.entityManager.worldManager.graph.freeGroundNodes.append(self.pos)
+            newTree = self.entityManager.worldManager.addNewTree()
+            if newTree.pos in self.entityManager.worldManager.graph.freeGroundNodes:
+                self.entityManager.worldManager.graph.freeGroundNodes.remove(newTree.pos)
+
+            if newTree.pos not in self.entityManager.worldManager.graph.fogNodes:
+                for entity in self.entityManager.workers:
+                    if entity not in self.entityManager.isUpgrading:
+                        self.entityManager.worldManager.messageDispatcher.dispatchMessage \
+                            (entity, self, Enumerations.message_type.treeAppeared, 0, newTree.pos)
+            self.stateMachine.changeState(States.States.wandering)  # change to carryTree later
+
+        elif telegram.msg == Enumerations.message_type.isUpgradedBuilder:
+            self.occupation = "builder"
+            self.entityManager.builders.append(self)
+            self.entityManager.isUpgrading.remove(self)
+            self.entityManager.workers.remove(self)
+            # add eventual variables here
+            self.entityManager.worldManager.needBuilders = False
+            self.route.clear()
+            self.isWorking = False
+            if len(self.destination) > 0:
+                self.destination.pop(0)
+                self.destination.pop(0)
+
+            self.stateMachine.changeState(States.States.idle)
+
+        elif telegram.msg == Enumerations.message_type.buildingIsDone:
+            self.entityManager.worldManager.buildings[self.pos] = Objects.Kiln(self.pos)
+            self.entityManager.worldManager.graph.freeGroundNodes.remove(self.pos)
+            self.isWorking = False
+            neighbours = self.entityManager.worldManager.graph.neighboursExceptFog(self.pos)
+            self.move(neighbours[0], self.entityManager.worldManager.graph)
 
     def move(self, nextNode, graph):
         diagonal = [(-1, -1), (1, -1),
@@ -81,7 +163,7 @@ class Entity:
         if self.pos in graph.groundNodes and nextNode in graph.groundNodes:
             for node in diagonal:
                 if (self.pos[0] + node[0], self.pos[1] + node[1]) == nextNode:
-                    self.entityManager.worldManager.messageDispatcher.dispatchMessage\
+                    self.entityManager.worldManager.messageDispatcher.dispatchMessage \
                         (self, self, Enumerations.message_type.move, 14 * self.speed, nextNode)
                     nextNodeInDiagonal = True
             if not nextNodeInDiagonal:
@@ -92,7 +174,7 @@ class Entity:
                 (self.pos in graph.swampNodes and nextNode in graph.groundNodes):
             for node in diagonal:
                 if (self.pos[0] + node[0], self.pos[1] + node[1]) == nextNode:
-                    self.entityManager.worldManager.messageDispatcher.dispatchMessage\
+                    self.entityManager.worldManager.messageDispatcher.dispatchMessage \
                         (self, self, Enumerations.message_type.move, 21 * self.speed, nextNode)
                     nextNodeInDiagonal = True
             if not nextNodeInDiagonal:
@@ -102,7 +184,7 @@ class Entity:
         elif self.pos in graph.swampNodes and nextNode in graph.swampNodes:
             for node in diagonal:
                 if (self.pos[0] + node[0], self.pos[1] + node[1]) == nextNode:
-                    self.entityManager.worldManager.messageDispatcher.dispatchMessage\
+                    self.entityManager.worldManager.messageDispatcher.dispatchMessage \
                         (self, self, Enumerations.message_type.move, 28 * self.speed, nextNode)
                     nextNodeInDiagonal = True
             if not nextNodeInDiagonal:

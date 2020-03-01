@@ -8,8 +8,11 @@ def findNearestFogNodeBFS(graph, start):
     queue.append(start)
     path = {tuple(start): None}
 
-    while len(queue) != 0:
-        currentNode = queue.popleft()  # treat queue as a stack by using popleft
+    maxLoops = 3
+    maxCost = maxLoops * 10 + maxLoops * 14
+    currentNode = start
+    while heuristic(currentNode, start) <= maxCost:
+        currentNode = queue.popleft()
 
         if currentNode in graph.fogNodes and currentNode not in graph.occupiedNodes:
             return currentNode
@@ -19,10 +22,12 @@ def findNearestFogNodeBFS(graph, start):
                 queue.append(neighbour)
                 path[tuple(neighbour)] = currentNode
 
-    return None
+    return findNearestRandomFogNode(graph)
 
 
 def findNearestRandomFogNode(graph):
+    if len(graph.fogNodes) <= len(graph.occupiedNodes):
+        return None
     notTestedNodes = graph.fogNodes.copy()
     currentNode = random.choice(notTestedNodes)
     notTestedNodes.remove(currentNode)
@@ -45,6 +50,29 @@ def findPathToNode(graph, start, goal):
             break
 
         for neighbour in graph.neighbours(currentNode):
+            newCost = costSoFar[currentNode] + tileDependentHeuristic(graph, neighbour, currentNode)
+            if (tuple(neighbour) not in costSoFar) or (newCost < costSoFar[tuple(neighbour)]):
+                costSoFar[tuple(neighbour)] = newCost
+                priority = newCost + heuristic(goal, neighbour)
+                path[tuple(neighbour)] = currentNode
+                heapq.heappush(priorityQ, (priority, tuple(neighbour)))
+
+    return path
+
+
+def findPathAvoidFog(graph, start, goal):
+    priorityQ = []
+    heapq.heappush(priorityQ, (0, tuple(start)))
+    path = {tuple(start): None}
+    costSoFar = {tuple(start): 0}
+
+    while len(priorityQ) != 0:
+        currentNode = heapq.heappop(priorityQ)[1]
+
+        if currentNode == tuple(goal):
+            break
+
+        for neighbour in graph.neighboursExceptFog(currentNode):
             newCost = costSoFar[currentNode] + tileDependentHeuristic(graph, neighbour, currentNode)
             if (tuple(neighbour) not in costSoFar) or (newCost < costSoFar[tuple(neighbour)]):
                 costSoFar[tuple(neighbour)] = newCost

@@ -10,10 +10,23 @@ class WorldManager:
         self.entityManager = entityManager
         self.graph = graph
         self.trees = {}
+        self.buildings = {}
         self.messageDispatcher = MessageSystem.MessageDispatcher()
         self.states = States.States()
+        self.needDiscoverers = True
+        self.needBuilders = True
+        self.needKilnManager = False
+        self.gatheredTreesAvailable = 0
+        self.needKiln = True
 
     def update(self):
+        if self.gatheredTreesAvailable >= 4 and self.needBuilders:
+            for entity in self.entityManager.workers:
+                if not entity.isWorking and entity not in self.entityManager.isUpgrading:
+                    entity.stateMachine.changeState(self.states.upgradingToBuilder)
+                    self.needBuilders = False
+                    break
+
         self.entityManager.update()
 
     def addNewTree(self):
@@ -30,6 +43,8 @@ class WorldManager:
         tree = Objects.Tree(self.graph.treeNodes[treeIndex])
         self.trees[self.graph.treeNodes[treeIndex]] = tree
 
+        return tree
+
     def handleMessage(self, telegram):
         if telegram.msg == Enumerations.message_type.stopUpgrading:
             for message in self.messageDispatcher.priorityQ:
@@ -37,4 +52,9 @@ class WorldManager:
                 if message[1].sender is telegram.sender and \
                         message[1].msg == Enumerations.message_type.isUpgradedDiscoverer:
                     self.messageDispatcher.priorityQ.remove(message)
+
+    def removeAllMessagesOf(self, messageType, entity):
+        for message in self.messageDispatcher.priorityQ:
+            if message[1].reciever is entity and message[1].msg == messageType:
+                self.messageDispatcher.priorityQ.remove(message)
 

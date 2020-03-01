@@ -46,6 +46,8 @@ class Parser:
                 pygame.draw.circle(screen, (255, 0, 0), self.nodePos[entity.pos], self.entitySize)
             if entity.occupation == "discoverer":
                 pygame.draw.circle(screen, (0, 0, 255), self.nodePos[entity.pos], self.entitySize)
+            if entity.occupation == "builder":
+                pygame.draw.circle(screen, (255, 255, 0), self.nodePos[entity.pos], self.entitySize)
 
     def drawFog(self, fogNodes, screen):
         for node in fogNodes:
@@ -62,3 +64,8 @@ class Parser:
                          (self.nodePos[worldManager.trees[tree].pos][0] + self.treeSize,
                           self.nodePos[worldManager.trees[tree].pos][1] + self.treeSize))
             pygame.draw.polygon(screen, (47, 96, 64), pointList)
+        for building in worldManager.buildings:
+            # draw square
+            x = self.nodePos[building][0] - self.squareSize / 2
+            y = self.nodePos[building][1] - self.squareSize / 2
+            pygame.draw.rect(screen, (255, 0, 255), [x, y, self.squareSize, self.squareSize])

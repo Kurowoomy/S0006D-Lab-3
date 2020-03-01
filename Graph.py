@@ -10,8 +10,26 @@ class Graph:
         self.swampNodes = []
         self.startNodes = []
         self.occupiedNodes = []
+        self.freeGroundNodes = []
 
     def neighbours(self, node):
+        directions = [(-1, -1), (0, -1), (1, -1),
+                      (-1, 0), (1, 0),
+                      (-1, 1), (0, 1), (1, 1)]
+        corners = [(-1, -1), (1, -1),
+                   (-1, 1), (1, 1)]
+        result = []
+        for pos in directions:
+            neighbour = (node[0] + pos[0], node[1] + pos[1])
+            if neighbour in self.nodes and neighbour not in self.nonWalkables:
+                if pos in corners and not self.cornerIsReachable(neighbour, node):
+                    pass
+                else:
+                    result.append(neighbour)  # add only walkable nodes to neighbours
+
+        return result
+
+    def neighboursExceptFog(self, node):
         directions = [(-1, -1), (0, -1), (1, -1),
                       (-1, 0), (1, 0),
                       (-1, 1), (0, 1), (1, 1)]
@@ -80,6 +98,7 @@ class Graph:
         for pos in startPositions:
             posNode = (startPos[0] + pos[0], startPos[1] + pos[1])
             self.startNodes.append(posNode)
+            self.freeGroundNodes.append(posNode)
             self.fogNodes.remove(posNode)
 
     def setFog(self):

@@ -9,3 +9,11 @@ class message_type(enum.Enum):
     move = 5
     treeAppeared = 6
     stopUpgrading = 7
+    isUpgradedBuilder = 8
+    buildingIsDone = 9
+
+
+
+class location_type(enum.Enum):
+    tree = 1
+    kiln = 2

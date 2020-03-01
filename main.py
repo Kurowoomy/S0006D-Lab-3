@@ -20,7 +20,7 @@ worldManager.graph.setFog()
 worldManager.graph.setStartPositions((75, 96))
 
 # create entities
-entityAmount = 30
+entityAmount = 15
 startPosIndex = 0
 ID = 0
 for entity in range(entityAmount):
@@ -36,7 +36,7 @@ for entity in range(entityAmount):
     ID += 1
 
 # create world
-for tree in range(5):
+for tree in range(50):
     worldManager.addNewTree()
 
 
