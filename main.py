@@ -5,6 +5,7 @@ import EntityManager
 import WorldManager
 import Graph
 import StateMachine
+import time
 
 
 pygame.init()
@@ -49,7 +50,12 @@ while running:
 
     # update logic--------------------
     worldManager.messageDispatcher.dispatchDelayedMessages()
+    start = time.perf_counter()
     worldManager.update()
+    # TODO: create a pathFinding scripts/class to keep in worldManager and execute it evenly so it won't lag, and then
+    # TODO: return path from worldManager.pathFinding to owner of path when it's done
+    if time.perf_counter() - start >= 1:
+        print("Plz don't take more than 1 second DD: I'll cry")
 
     # drawing-------------------------
     screen.fill((255, 255, 255))

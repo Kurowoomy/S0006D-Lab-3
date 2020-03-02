@@ -70,7 +70,7 @@ class UpgradingToDiscoverer:
         pass
 
 
-class Discover:
+class Discover:  # TODO: fix lag when tree is discovered
     def __init__(self):
         self.nodeHasWorker = False
 
@@ -85,9 +85,12 @@ class Discover:
             # tell workers the tree is cleared of fog
             if character.pos in character.entityManager.worldManager.trees:
                 for entity in character.entityManager.workers:
-                    if entity not in character.entityManager.isUpgrading:
+                    if entity not in character.entityManager.isUpgrading and not entity.isWorking and \
+                            entity.variables["item"] is None:
                         character.entityManager.worldManager.messageDispatcher.dispatchMessage \
                             (entity, character, Enumerations.message_type.treeAppeared, 0, character.pos)
+                        break
+
             else:
                 if character in character.entityManager.worldManager.graph.groundNodes:
                     character.entityManager.worldManager.graph.freeGroundNodes.append(character.pos)
@@ -98,32 +101,33 @@ class Discover:
                 character.entityManager.worldManager.graph.fogNodes.remove(neighbour)
                 if neighbour in character.entityManager.worldManager.trees:
                     for entity in character.entityManager.workers:
-                        if entity not in character.entityManager.isUpgrading:
+                        if entity not in character.entityManager.isUpgrading and not entity.isWorking and \
+                                entity.variables["item"] is None:
                             character.entityManager.worldManager.messageDispatcher.dispatchMessage \
                                 (entity, character, Enumerations.message_type.treeAppeared, 0, neighbour)
+                            break
                 else:
                     if neighbour in character.entityManager.worldManager.graph.groundNodes:
                         character.entityManager.worldManager.graph.freeGroundNodes.append(neighbour)
 
+        # get path
         if character.variables["nextFogNode"] is None:
             if not character.entityManager.worldManager.AStarHasOccurred:
                 # find next fogNode
-                # TODO: use BFS first, then random point with A*
+                # TODO: use BFS first, then get random point
                 character.variables["nextFogNode"] = Algorithms.findNearestFogNodeBFS \
                     (character.entityManager.worldManager.graph, character.pos)
+
                 if character.variables["nextFogNode"] is None or \
                         len(character.entityManager.worldManager.graph.occupiedNodes) == \
                         len(character.entityManager.worldManager.graph.fogNodes):
                     character.stateMachine.changeState(States.idle)
-                elif character.variables["nextFogNode"] is not None and \
-                        character.entityManager.worldManager.AStarHasOccurred:
-                    pass
 
-                else:
+                else:  # if nextFogNode is found
                     character.entityManager.worldManager.graph.occupiedNodes.append(character.variables["nextFogNode"])
                     path = Algorithms.findPathToNode \
                         (character.entityManager.worldManager.graph, character.pos, character.variables["nextFogNode"])
-                    character.entityManager.worldManager.AStarHasOccurred = True
+                    character.entityManager.worldManager.AStarHasOccurred = False
                     character.route = Algorithms.getRoute(character.pos, character.variables["nextFogNode"], path)
             else:
                 pass
@@ -152,11 +156,13 @@ class ChopTree:
             character.entityManager.worldManager.removeAllMessagesOf(Enumerations.message_type.move, character)
             character.stateMachine.changeState(States.moveToDestination)
         else:
-            character.destination.pop(0)
-            character.destination.pop(0)
+            # remove all move messages
+            character.entityManager.worldManager.removeAllMessagesOf(Enumerations.message_type.move, character)
             character.entityManager.worldManager.messageDispatcher.dispatchMessage \
                 (character, character, Enumerations.message_type.treeIsChopped, 10, \
-                 character.entityManager.worldManager.trees[character.pos])
+                 character.entityManager.worldManager.trees[character.destination[0]])
+            character.destination.pop(0)
+            character.destination.pop(0)
 
     def update(self, character):
         pass
@@ -179,6 +185,8 @@ class CarryTree:
                     character.entityManager.worldManager.messageDispatcher.dispatchMessage \
                         (kilnManager, character, Enumerations.message_type.recieveMaterial, 0, \
                          character.variable["item"])
+                    character.variable["item"] = None
+                    character.stateMachine.changeState(States.wandering)
 
     def update(self, character):
         pass
@@ -197,7 +205,7 @@ class MoveToDestination:
                 else:
                     path = Algorithms.findPathToNode \
                         (character.entityManager.worldManager.graph, character.pos, character.destination[0])
-                character.entityManager.worldManager.AStarHasOccurred = True
+                character.entityManager.worldManager.AStarHasOccurred = False
                 character.route = Algorithms.getRoute(character.pos, character.destination[0], path)
 
     def update(self, character):
@@ -209,7 +217,7 @@ class MoveToDestination:
                 else:
                     path = Algorithms.findPathToNode \
                         (character.entityManager.worldManager.graph, character.pos, character.destination[0])
-                character.entityManager.worldManager.AStarHasOccurred = True
+                character.entityManager.worldManager.AStarHasOccurred = False
                 character.route = Algorithms.getRoute(character.pos, character.destination[0], path)
         else:
             character.move(character.route[0], character.entityManager.worldManager.graph)
@@ -235,43 +243,18 @@ class UpgradingToBuilder:
 class Build:
     def enter(self, character):
         character.isWorking = True
-        if len(character.route) <= 0 and len(character.destination) <= 0:
-            character.destination.append(random.choice(character.entityManager.worldManager.graph.freeGroundNodes))
-            character.destination.append(Enumerations.location_type.kiln)
-            if not character.entityManager.worldManager.AStarHasOccurred:
-                if character.destination[0] != character.pos:
-                    path = Algorithms.findPathAvoidFog \
-                        (character.entityManager.worldManager.graph, character.pos, character.destination[0])
-                    character.entityManager.worldManager.AStarHasOccurred = True
-                    character.route = Algorithms.getRoute(character.pos, character.destination[0], path)
-                    character.stateMachine.changeState(States.moveToDestination)
-                else:
-                    character.destination.pop(0)
-                    character.destination.pop(0)
-                    character.entityManager.worldManager.gatheredTreesAvailable -= 10
-                    character.entityManager.worldManager.messageDispatcher.dispatchMessage \
-                        (character, character, Enumerations.message_type.buildingIsDone, 5, None)
-        else:  # if character doesn't have a route, buildingIsDone
+        if character.destination[0] != character.pos:
+            character.entityManager.worldManager.removeAllMessagesOf(Enumerations.message_type.move, character)
+            character.stateMachine.changeState(States.moveToDestination)
+        else:
+            character.destination.pop(0)
+            character.destination.pop(0)
             character.entityManager.worldManager.gatheredTreesAvailable -= 10
             character.entityManager.worldManager.messageDispatcher.dispatchMessage \
-                (character, character, Enumerations.message_type.buildingIsDone, 5, None)
+                (character, character, Enumerations.message_type.buildingIsDone, 0, None)
 
     def update(self, character):
-        # TODO: fixa så buildern bygger när det behövs
-        if len(character.route) <= 0 and len(character.destination) <= 0:
-            if not character.entityManager.worldManager.AStarHasOccurred:
-                if character.destination[0] != character.pos:
-                    path = Algorithms.findPathAvoidFog \
-                        (character.entityManager.worldManager.graph, character.pos, character.destination[0])
-                    character.entityManager.worldManager.AStarHasOccurred = True
-                    character.route = Algorithms.getRoute(character.pos, character.destination[0], path)
-                    character.stateMachine.changeState(States.moveToDestination)
-                else:
-                    character.destination.pop(0)
-                    character.destination.pop(0)
-                    character.entityManager.worldManager.gatheredTreesAvailable -= 10
-                    character.entityManager.worldManager.messageDispatcher.dispatchMessage \
-                        (character, character, Enumerations.message_type.buildingIsDone, 5, None)
+        pass
 
     def exit(self, character):
         pass
@@ -299,15 +282,23 @@ class ManageKiln:
         else:
             character.destination.pop(0)
             character.destination.pop(0)
-            # do nothing, continue with the update
+            # tell workers with a tree that they can start carryTree
+            for worker in character.entityManager.workers:
+                if worker.variables["item"] is not None:
+                    worker.destination.append(character.pos)
+                    worker.destination.append(Enumerations.location_type.kiln)
+                    worker.stateMachine.changeState(States.carryTree)
 
     def update(self, character):
         # is at kiln
         # if enough trees in variable["items"], send message to itself to make charchoal
-        if len(character.variables["items"]) >= 2 and not character.variables["isMakingCharcoal"]:
-            character.variables["isMakingCharcoal"] = True
-            character.entityManager.worldManager.messageDispatcher.dispatchMessage \
-                (character, character, Enumerations.message_type.charcoalIsDone, 5, None)
+        for building in character.entityManager.worldManager.buildings:
+            if character.pos == building:
+                if len(character.variables["items"]) >= 2 and not character.variables["isMakingCharcoal"]:
+                    character.variables["isMakingCharcoal"] = True
+                    character.entityManager.worldManager.messageDispatcher.dispatchMessage \
+                        (character, character, Enumerations.message_type.charcoalIsDone, 5, None)
+                break
         else:
             pass  # do nothing
 

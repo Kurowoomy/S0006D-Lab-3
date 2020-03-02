@@ -73,12 +73,20 @@ def findPathAvoidFog(graph, start, goal):
             break
 
         for neighbour in graph.neighboursExceptFog(currentNode):
-            newCost = costSoFar[currentNode] + tileDependentHeuristic(graph, neighbour, currentNode)
-            if (tuple(neighbour) not in costSoFar) or (newCost < costSoFar[tuple(neighbour)]):
-                costSoFar[tuple(neighbour)] = newCost
-                priority = newCost + heuristic(goal, neighbour)
-                path[tuple(neighbour)] = currentNode
-                heapq.heappush(priorityQ, (priority, tuple(neighbour)))
+            if neighbour not in graph.fogNodes:
+                newCost = costSoFar[currentNode] + tileDependentHeuristic(graph, neighbour, currentNode)
+                if (tuple(neighbour) not in costSoFar) or (newCost < costSoFar[tuple(neighbour)]):
+                    costSoFar[tuple(neighbour)] = newCost
+                    priority = newCost + heuristic(goal, neighbour)
+                    path[tuple(neighbour)] = currentNode
+                    heapq.heappush(priorityQ, (priority, tuple(neighbour)))
+            else:  # if neighbour is in a fogNode, plz don't choose this node I beg you :((
+                newCost = costSoFar[currentNode] + 10000000000000000000000000000000000
+                if (tuple(neighbour) not in costSoFar) or (newCost < costSoFar[tuple(neighbour)]):
+                    costSoFar[tuple(neighbour)] = newCost
+                    priority = newCost + heuristic(goal, neighbour)
+                    path[tuple(neighbour)] = currentNode
+                    heapq.heappush(priorityQ, (priority, tuple(neighbour)))
 
     return path
 

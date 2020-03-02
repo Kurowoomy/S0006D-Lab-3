@@ -2,6 +2,7 @@ import States
 import Enumerations
 import Algorithms
 import Objects
+import random
 
 
 class Entity:
@@ -13,12 +14,10 @@ class Entity:
         self.ID = ID
         self.variables = {}
         self.route = []
-        self.speed = 0.05  # lower value is faster, 1 is normal speed
-        self.destinationDistance = None
+        self.speed = 1  # lower value is faster, 1 is normal speed
+        self.destinationDistance = 0
         self.destination = []  # [0] is (x, y), [1] is location_type
         self.isWorking = False
-        # TODO: skapa kilnManager
-        # TODO: fixa variabel för trädet worker:n har fält så den kan för det till närmaste kilnManager
 
     def update(self):
         # upgrade to discoverer if needed
@@ -63,14 +62,28 @@ class Entity:
             if self.occupation == "discoverer":
                 self.stateMachine.changeState(States.States.discover)
 
-            elif self.occupation == "worker" and not self.isWorking:
-                self.stateMachine.changeState(States.States.wandering)
-
-            elif self.occupation == "worker" and self.isWorking:
-                if self.pos == self.destination[0] and self.destination[1] == Enumerations.location_type.tree:
-                    self.stateMachine.changeState(States.States.chopTree)
-                else:
-                    self.stateMachine.changeState(States.States.moveToDestination)
+            elif self.occupation == "worker":
+                if not self.isWorking:
+                    self.stateMachine.changeState(States.States.wandering)
+                elif self.isWorking:
+                    if len(self.destination) <= 0:
+                        print("no destination :(")
+                        print("no destination :(")
+                    elif self.pos == self.destination[0] and self.destination[1] == Enumerations.location_type.tree:
+                        self.stateMachine.changeState(States.States.chopTree)
+                    elif self.pos == self.destination[0] and self.destination[1] == Enumerations.location_type.kiln:
+                        # send msg to kilnManager at this pos, recieveItem
+                        for kilnManager in self.entityManager.kilnManagers:
+                            if kilnManager.pos == self.pos:
+                                self.entityManager.worldManager.messageDispatcher.dispatchMessage \
+                                    (kilnManager, self, Enumerations.message_type.recieveMaterial, 0, \
+                                     self.variables["item"])
+                                break
+                        while len(self.destination) <= 0:
+                            self.destination.pop(0)
+                        self.stateMachine.changeState(States.States.wandering)
+                    else:
+                        self.stateMachine.changeState(States.States.moveToDestination)
 
             elif self.occupation == "builder":
                 if self.isWorking and self.pos == self.destination[0] and \
@@ -82,7 +95,9 @@ class Entity:
                     self.stateMachine.changeState(States.States.idle)
 
             elif self.occupation == "kilnManager":
-                if self.isWorking:
+                if self.pos == self.destination[0] and self.destination[1] == Enumerations.location_type.kiln:
+                    self.stateMachine.changeState(States.States.manageKiln)
+                elif self.isWorking:
                     self.stateMachine.changeState(States.States.moveToDestination)
                 else:
                     self.stateMachine.changeState(States.States.idle)
@@ -106,6 +121,8 @@ class Entity:
                             stateMachine.changeState(States.States.wandering)
 
                         self.entityManager.worldManager.trees[telegram.extraInfo].owner = self
+                        while len(self.destination) > 0:
+                            self.destination.pop(0)
                         self.destination.append(telegram.extraInfo)
                         self.destination.append(Enumerations.location_type.tree)
                         self.stateMachine.changeState(States.States.chopTree)
@@ -114,6 +131,8 @@ class Entity:
                 else:
                     self.entityManager.worldManager.trees[telegram.extraInfo].owner = self
                     # change destination to tree
+                    while len(self.destination) > 0:
+                        self.destination.pop(0)
                     self.destination.append(telegram.extraInfo)
                     self.destination.append(Enumerations.location_type.tree)
                     self.stateMachine.changeState(States.States.chopTree)
@@ -121,12 +140,21 @@ class Entity:
         elif telegram.msg == Enumerations.message_type.treeIsChopped:
             self.entityManager.worldManager.gatheredTreesAvailable += 1
             self.variables["item"] = self.entityManager.worldManager.trees[self.pos]
-            if self.entityManager.worldManager.gatheredTreesAvailable >= 10 and \
-                    len(self.entityManager.builders) >= 0 and self.entityManager.worldManager.needKiln:
+            if self.entityManager.worldManager.gatheredTreesAvailable >= 10 \
+                    and self.entityManager.worldManager.needKiln:
                 for builder in self.entityManager.builders:
-                    if not builder.isWorking:
+                    if not builder.isWorking and self.entityManager.worldManager.needKiln:
                         self.entityManager.worldManager.needKiln = False
+                        builder.destination.append\
+                            (random.choice(builder.entityManager.worldManager.graph.freeGroundNodes))
+                        builder.destination.append(Enumerations.location_type.kiln)
                         builder.stateMachine.changeState(States.States.build)
+                        for kilnManager in self.entityManager.kilnManagers:
+                            if not kilnManager.isWorking:
+                                kilnManager.destination.append(builder.destination[0])
+                                kilnManager.destination.append(Enumerations.location_type.kiln)
+                                kilnManager.stateMachine.changeState(States.States.manageKiln)
+                                break
 
             self.entityManager.worldManager.trees.pop(self.pos, telegram.extraInfo)
             self.entityManager.worldManager.graph.freeGroundNodes.append(self.pos)
@@ -140,8 +168,22 @@ class Entity:
                         self.entityManager.worldManager.messageDispatcher.dispatchMessage \
                             (entity, self, Enumerations.message_type.treeAppeared, 0, newTree.pos)
 
+            # find nearest kilnManager
+            self.destinationDistance = 1000000
+            self.destination.append(self.pos)
+            self.destination.append(None)
+            for kilnManager in self.entityManager.kilnManagers:
+                newDistance = Algorithms.heuristic(kilnManager.pos, self.pos)
+                if newDistance < self.destinationDistance and \
+                        kilnManager.pos in self.entityManager.worldManager.buildings:
+                    self.destinationDistance = newDistance
+                    self.destination[0] = kilnManager.pos
+                    self.destination[1] = Enumerations.location_type.kiln
+
             # start carrying tree if has destination
-            if len(self.destination) <= 0:
+            if self.destination[1] is None:
+                self.destination.pop(0)
+                self.destination.pop(0)
                 self.stateMachine.changeState(States.States.wandering)
             else:
                 self.stateMachine.changeState(States.States.carryTree)
@@ -151,7 +193,9 @@ class Entity:
             self.entityManager.builders.append(self)
             self.entityManager.isUpgrading.remove(self)
             self.entityManager.workers.remove(self)
-            # add eventual variables here
+            self.variables.popitem()
+            self.variables["isBuilding"] = False
+
             self.entityManager.worldManager.needBuilders = False
             self.entityManager.worldManager.removeAllMessagesOf(Enumerations.message_type.move, self)
             self.route.clear()
@@ -159,8 +203,6 @@ class Entity:
             if len(self.destination) > 0:
                 self.destination.pop(0)
                 self.destination.pop(0)
-            # remove variable
-            self.variables.popitem()
 
             self.stateMachine.changeState(States.States.idle)
 
@@ -169,13 +211,7 @@ class Entity:
             self.entityManager.worldManager.graph.freeGroundNodes.remove(self.pos)
 
             self.isWorking = False
-            # tell a free kilnManager that it can start moving to self.pos
-            for entity in self.entityManager.kilnManagers:
-                if not entity.isWorking:
-                    entity.destination.append(self.pos)
-                    entity.destination.append(Enumerations.location_type.kiln)
-                    entity.stateMachine.changeState(States.States.manageKiln)
-                    break
+            self.variables["isBuilding"] = False
 
             neighbours = self.entityManager.worldManager.graph.neighboursExceptFog(self.pos)
             self.move(neighbours[0], self.entityManager.worldManager.graph)
@@ -207,12 +243,10 @@ class Entity:
                 print("20 charcoal has been made! :D Betyg 3 är nått!")
 
             self.variables["isMakingCharcoal"] = False
-            # tell a free kilnManager that it can start moving to self.pos
-            for entity in self.entityManager.kilnManagers:
-                if not entity.isWorking:
-                    entity.destination[self.pos] = Enumerations.location_type.kiln
-                    entity.stateMachine.changeState(States.States.manageKiln)
-                    break
+
+        elif telegram.msg == Enumerations.message_type.recieveMaterial:
+            self.variables["items"].append(telegram.extraInfo)
+            telegram.sender.variables["item"] = None
 
     def move(self, nextNode, graph):
         diagonal = [(-1, -1), (1, -1),
