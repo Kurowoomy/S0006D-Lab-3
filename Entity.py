@@ -50,6 +50,7 @@ class Entity:
             self.entityManager.discoverers.append(self)
             self.entityManager.isUpgrading.remove(self)
             self.entityManager.workers.remove(self)
+            self.variables.popitem()
             self.variables["nextFogNode"] = None
             if len(self.entityManager.discoverers) >= 20:
                 self.entityManager.worldManager.needDiscoverers = False
@@ -80,9 +81,15 @@ class Entity:
                 else:
                     self.stateMachine.changeState(States.States.idle)
 
+            elif self.occupation == "kilnManager":
+                if self.isWorking:
+                    self.stateMachine.changeState(States.States.moveToDestination)
+                else:
+                    self.stateMachine.changeState(States.States.idle)
+
         elif telegram.msg == Enumerations.message_type.treeAppeared:
-            # handle message if currentState is wandering
-            if not self.isWorking:
+            # handle message if this entity wants a tree to chop
+            if not self.isWorking and self.variables["item"] is None:
                 # check if tree has owner
                 if self.entityManager.worldManager.trees[telegram.extraInfo].owner is not None:
                     # if occupied, check if distance is shorter for self
@@ -113,6 +120,7 @@ class Entity:
 
         elif telegram.msg == Enumerations.message_type.treeIsChopped:
             self.entityManager.worldManager.gatheredTreesAvailable += 1
+            self.variables["item"] = self.entityManager.worldManager.trees[self.pos]
             if self.entityManager.worldManager.gatheredTreesAvailable >= 10 and \
                     len(self.entityManager.builders) >= 0 and self.entityManager.worldManager.needKiln:
                 for builder in self.entityManager.builders:
@@ -131,7 +139,12 @@ class Entity:
                     if entity not in self.entityManager.isUpgrading:
                         self.entityManager.worldManager.messageDispatcher.dispatchMessage \
                             (entity, self, Enumerations.message_type.treeAppeared, 0, newTree.pos)
-            self.stateMachine.changeState(States.States.wandering)  # change to carryTree later
+
+            # start carrying tree if has destination
+            if len(self.destination) <= 0:
+                self.stateMachine.changeState(States.States.wandering)
+            else:
+                self.stateMachine.changeState(States.States.carryTree)
 
         elif telegram.msg == Enumerations.message_type.isUpgradedBuilder:
             self.occupation = "builder"
@@ -140,20 +153,66 @@ class Entity:
             self.entityManager.workers.remove(self)
             # add eventual variables here
             self.entityManager.worldManager.needBuilders = False
+            self.entityManager.worldManager.removeAllMessagesOf(Enumerations.message_type.move, self)
             self.route.clear()
             self.isWorking = False
             if len(self.destination) > 0:
                 self.destination.pop(0)
                 self.destination.pop(0)
+            # remove variable
+            self.variables.popitem()
 
             self.stateMachine.changeState(States.States.idle)
 
         elif telegram.msg == Enumerations.message_type.buildingIsDone:
             self.entityManager.worldManager.buildings[self.pos] = Objects.Kiln(self.pos)
             self.entityManager.worldManager.graph.freeGroundNodes.remove(self.pos)
+
             self.isWorking = False
+            # tell a free kilnManager that it can start moving to self.pos
+            for entity in self.entityManager.kilnManagers:
+                if not entity.isWorking:
+                    entity.destination.append(self.pos)
+                    entity.destination.append(Enumerations.location_type.kiln)
+                    entity.stateMachine.changeState(States.States.manageKiln)
+                    break
+
             neighbours = self.entityManager.worldManager.graph.neighboursExceptFog(self.pos)
             self.move(neighbours[0], self.entityManager.worldManager.graph)
+
+        elif telegram.msg == Enumerations.message_type.isUpgradedKilnManager:
+            self.occupation = "kilnManager"
+            self.entityManager.kilnManagers.append(self)
+            self.entityManager.isUpgrading.remove(self)
+            self.entityManager.workers.remove(self)
+            # add eventual variables here
+            self.variables.popitem()
+            self.variables["items"] = []
+            self.variables["isMakingCharcoal"] = False
+
+            self.entityManager.worldManager.needKilnManager = False
+            self.entityManager.worldManager.removeAllMessagesOf(Enumerations.message_type.move, self)
+            self.route.clear()
+            self.isWorking = False
+            if len(self.destination) > 0:
+                self.destination.pop(0)
+                self.destination.pop(0)
+            self.stateMachine.changeState(States.States.idle)
+
+        elif telegram.msg == Enumerations.message_type.charcoalIsDone:
+            self.entityManager.worldManager.charcoal += 1
+            self.variables["items"].pop(0)
+            self.variables["items"].pop(0)
+            if self.entityManager.worldManager.charcoal >= 20:
+                print("20 charcoal has been made! :D Betyg 3 är nått!")
+
+            self.variables["isMakingCharcoal"] = False
+            # tell a free kilnManager that it can start moving to self.pos
+            for entity in self.entityManager.kilnManagers:
+                if not entity.isWorking:
+                    entity.destination[self.pos] = Enumerations.location_type.kiln
+                    entity.stateMachine.changeState(States.States.manageKiln)
+                    break
 
     def move(self, nextNode, graph):
         diagonal = [(-1, -1), (1, -1),

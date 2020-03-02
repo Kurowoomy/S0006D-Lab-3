@@ -9,6 +9,7 @@ class EntityManager:
         self.isUpgrading = []
         self.worldManager = None
         self.builders = []
+        self.kilnManagers = []
 
     def update(self):
         for entity in self.entities:

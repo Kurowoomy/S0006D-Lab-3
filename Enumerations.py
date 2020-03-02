@@ -11,6 +11,9 @@ class message_type(enum.Enum):
     stopUpgrading = 7
     isUpgradedBuilder = 8
     buildingIsDone = 9
+    recieveMaterial = 10
+    charcoalIsDone = 11
+    isUpgradedKilnManager = 12
 
 
 

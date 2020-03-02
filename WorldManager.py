@@ -15,9 +15,11 @@ class WorldManager:
         self.states = States.States()
         self.needDiscoverers = True
         self.needBuilders = True
-        self.needKilnManager = False
+        self.needKilnManager = True
         self.gatheredTreesAvailable = 0
         self.needKiln = True
+        self.AStarHasOccurred = False
+        self.charcoal = 0
 
     def update(self):
         if self.gatheredTreesAvailable >= 4 and self.needBuilders:
@@ -26,7 +28,14 @@ class WorldManager:
                     entity.stateMachine.changeState(self.states.upgradingToBuilder)
                     self.needBuilders = False
                     break
+        if self.gatheredTreesAvailable >= 4 and self.needKilnManager:
+            for entity in self.entityManager.workers:
+                if not entity.isWorking and entity not in self.entityManager.isUpgrading:
+                    entity.stateMachine.changeState(self.states.upgradingToKilnManager)
+                    self.needKilnManager = False
+                    break
 
+        self.AStarHasOccurred = False
         self.entityManager.update()
 
     def addNewTree(self):

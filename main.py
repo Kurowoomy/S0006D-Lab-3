@@ -20,7 +20,7 @@ worldManager.graph.setFog()
 worldManager.graph.setStartPositions((75, 96))
 
 # create entities
-entityAmount = 15
+entityAmount = 50
 startPosIndex = 0
 ID = 0
 for entity in range(entityAmount):
@@ -28,6 +28,7 @@ for entity in range(entityAmount):
         startPosIndex = 0
     newEntity = Entity.Entity("worker", worldManager.graph.startNodes[startPosIndex],
                               worldManager.entityManager, ID)
+    newEntity.variables["item"] = None
     stateMachine = StateMachine.StateMachine(worldManager.states.wandering, newEntity)
     newEntity.stateMachine = stateMachine
     worldManager.entityManager.entities.append(newEntity)

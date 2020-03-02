@@ -48,6 +48,8 @@ class Parser:
                 pygame.draw.circle(screen, (0, 0, 255), self.nodePos[entity.pos], self.entitySize)
             if entity.occupation == "builder":
                 pygame.draw.circle(screen, (255, 255, 0), self.nodePos[entity.pos], self.entitySize)
+            if entity.occupation == "kilnManager":
+                pygame.draw.circle(screen, (112, 5, 75), self.nodePos[entity.pos], self.entitySize)
 
     def drawFog(self, fogNodes, screen):
         for node in fogNodes:
