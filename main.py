@@ -38,7 +38,7 @@ for entity in range(entityAmount):
     ID += 1
 
 # create world
-for tree in range(50):
+for tree in range(5):
     worldManager.addNewTree()
 
 
@@ -56,6 +56,10 @@ while running:
     # TODO: return path from worldManager.pathFinding to owner of path when it's done
     if time.perf_counter() - start >= 1:
         print("Plz don't take more than 1 second DD: I'll cry")
+    start = time.perf_counter()
+    worldManager.doPathFinding()
+    if time.perf_counter() - start >= 1:
+        print("Path finder still takes too much time (1 second or more)")
 
     # drawing-------------------------
     screen.fill((255, 255, 255))

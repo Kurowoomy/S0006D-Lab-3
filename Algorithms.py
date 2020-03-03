@@ -15,14 +15,14 @@ def findNearestFogNodeBFS(graph, start):
         currentNode = queue.popleft()
 
         if currentNode in graph.fogNodes and currentNode not in graph.occupiedNodes:
-            return currentNode
+            return currentNode, path
 
         for neighbour in graph.neighbours(currentNode):
             if tuple(neighbour) not in path:
                 queue.append(neighbour)
                 path[tuple(neighbour)] = currentNode
 
-    return findNearestRandomFogNode(graph)
+    return findNearestRandomFogNode(graph), path
 
 
 def findNearestRandomFogNode(graph):
@@ -143,14 +143,37 @@ def tileDependentHeuristic(graph, next, current):
 
 def getRoute(start, goal, path):
     if len(path) <= 0:
-        return []
+        return [(0, 0)]
 
     node = tuple(goal)
     route = [node]
     while node != tuple(start):
+        if node is None:
+            print("node: Nonetype object :((")
+        if path[node] is None:
+            print("path[", node, "]: Nonetype object :((")  # TODO: fixa denna bugg
         node = tuple(path[node])
         route.append(node)
 
     route.reverse()
     route.pop(0)
     return route
+
+
+def getBFSRoute(start, goal, graph, previousPath):
+    queue = collections.deque()
+    queue.append(start)
+    path = previousPath
+
+    while len(queue) != 0:
+        currentNode = queue.popleft()  # treat queue as a stack by using popleft
+
+        if currentNode == goal:
+            break
+
+        for neighbour in graph.neighbours(currentNode):
+            if tuple(neighbour) not in path:
+                queue.append(neighbour)
+                path[tuple(neighbour)] = currentNode
+
+    return getRoute(start, goal, path)

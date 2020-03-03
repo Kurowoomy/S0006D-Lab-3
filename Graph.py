@@ -39,8 +39,9 @@ class Graph:
         for pos in directions:
             neighbour = (node[0] + pos[0], node[1] + pos[1])
             if neighbour in self.nodes and neighbour not in self.nonWalkables:
-                if pos in corners and not self.cornerIsReachable(neighbour, node) and \
-                        neighbour in self.fogNodes:
+                if pos in corners and not self.cornerIsReachable(neighbour, node):
+                    pass
+                elif neighbour in self.fogNodes:
                     pass
                 else:
                     result.append(neighbour)  # add only walkable nodes to neighbours
