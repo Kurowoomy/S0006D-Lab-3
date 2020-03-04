@@ -10,6 +10,9 @@ class Telegram:
         self.dispatchTime = dispatchTime
         self.extraInfo = extraInfo
 
+    def __lt__(self, other):
+        return True
+
 
 class MessageDispatcher:
     priorityQ = []  # queue for delayed messages

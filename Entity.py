@@ -19,6 +19,28 @@ class Entity:
         self.destination = []  # [0] is (x, y), [1] is location_type
         self.isWorking = False
 
+    def __lt__(self, other):
+        if self.occupation == "discoverer":  # goal is variables["newFogNode"]
+            if Algorithms.heuristic(self.variables["newFogNode"], self.pos) < \
+                    Algorithms.heuristic(other.variables["newFogNode"], other.pos):
+                return True
+        else:
+            if Algorithms.heuristic(self.destination[0], self.pos) < \
+                    Algorithms.heuristic(other.destination[0], other.pos):
+                return True
+        return False
+
+    def __le__(self, other):
+        if self.occupation == "discoverer":  # goal is variables["newFogNode"]
+            if Algorithms.heuristic(self.variables["newFogNode"], self.pos) <= \
+                    Algorithms.heuristic(other.variables["newFogNode"], other.pos):
+                return True
+        else:
+            if Algorithms.heuristic(self.destination[0], self.pos) <= \
+                    Algorithms.heuristic(other.destination[0], other.pos):
+                return True
+        return False
+
     def update(self):
         # upgrade to discoverer if needed
         if self.occupation == "worker" and self.stateMachine.currentState is States.States.wandering and \
@@ -77,7 +99,7 @@ class Entity:
                             if len(worker.destination) > 0 and worker is not self and worker.destination[0] == self.pos:
                                 # for all pathsToFind[3] that is this pos
                                 for pathToFind in self.entityManager.worldManager.pathsToFind:
-                                    if pathToFind[3] == self.pos:
+                                    if pathToFind[1][3] == self.pos:
                                         # if this path search is ongoing
                                         if self.entityManager.worldManager.pathsToFind[0] is pathToFind:
                                             self.entityManager.worldManager.priorityQ.clear()
@@ -164,6 +186,8 @@ class Entity:
                     otherDistance = Algorithms.heuristic \
                         (telegram.extraInfo, self.entityManager.worldManager.trees[telegram.extraInfo].owner.pos)
                     # if shorter for self, change worker of tree to self, changeState(ChopTree)
+                    # this is where pathsToFind is neglected D:
+                    # TODO: fix pathsToFind to match current state
                     if distance < otherDistance:
                         # make previous owner change state to wandering
                         self.entityManager.worldManager.trees[telegram.extraInfo].owner.destination.pop(0)
@@ -280,6 +304,10 @@ class Entity:
                 if kilnManager.pos == self.pos:
                     self.entityManager.worldManager.buildings[self.pos].owner = kilnManager
                     if not kilnManager.isWorking:
+                        while len(kilnManager.destination) > 0:
+                            kilnManager.destination.pop(0)
+                        kilnManager.destination.append(self.pos)
+                        kilnManager.destination.append(Enumerations.location_type.kiln)
                         kilnManager.stateMachine.changeState(States.States.manageKiln)
                     break
             # if not at this pos, for loop through kilnManagers
@@ -287,6 +315,10 @@ class Entity:
                 for kilnManager in self.entityManager.kilnManagers:
                     if not kilnManager.isWorking:
                         self.entityManager.worldManager.buildings[self.pos].owner = kilnManager
+                        while len(kilnManager.destination) > 0:
+                            kilnManager.destination.pop(0)
+                        kilnManager.destination.append(self.pos)
+                        kilnManager.destination.append(Enumerations.location_type.kiln)
                         kilnManager.stateMachine.changeState(States.States.manageKiln)
                         break
 
@@ -332,6 +364,8 @@ class Entity:
 
         elif telegram.msg == Enumerations.message_type.recieveMaterial:
             self.variables["items"].append(telegram.extraInfo)
+            # self.entityManager.worldManager.trees.pop\
+            #     (telegram.extraInfo.pos, telegram.extraInfo)
             telegram.sender.variables["item"] = None
 
     def move(self, nextNode, graph):

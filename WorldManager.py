@@ -25,14 +25,25 @@ class WorldManager:
         self.buildingSpots = [(72, 90), (23, 90), (72, 37), (26, 11)]
         # path finding
         self.pathsToFind = []
+        self.discoverPathsToFind = []  # TODO: implement this at States.py when adding and removing paths for discoverer
         self.iterationsPerUpdate = 20
         self.iterationsSoFar = 0
+
         self.costSoFar = {}
         self.AStarCostSoFar = {}
+        self.discoverCostSoFar = {}
+        self.discoverAStarCostSoFar = {}
+
         self.priorityQ = []
+        self.discoverPriorityQ = []
         self.AStarPriorityQ = []
+        self.discoverAStarPriorityQ = []
+
         self.path = {}
         self.AStarPath = {}
+        self.discoverPath = {}
+        self.discoverAStarPath = {}
+        # self.pathFound = False
 
     def update(self):
         # upgrading to builder and kilnManager
@@ -86,7 +97,7 @@ class WorldManager:
         foundFreeNode = False
         while not foundFreeNode:
             foundFreeNode = True
-            for tree in self.trees:  # TODO: are dictionaries iterable?
+            for tree in self.trees:
                 if self.graph.treeNodes[treeIndex] == self.trees[tree].pos:
                     treeIndex = random.randrange(0, len(self.graph.treeNodes))
                     foundFreeNode = False
@@ -113,47 +124,166 @@ class WorldManager:
     def doPathFinding(self):
         if len(self.pathsToFind) > 0:  # 0:entity, 1:graph, 2:start, 3:goal
 
-            if self.pathsToFind[0][1][0].occupation == "discoverer":
-                if len(self.priorityQ) == 0:  # new entity
+            # if self.pathsToFind[0][1][0].occupation == "discoverer":
+            #     if len(self.priorityQ) == 0:  # new entity
+            #         self.AStarPriorityQ.clear()
+            #         heapq.heappush(self.AStarPriorityQ, (0, tuple(self.pathsToFind[0][1][2])))
+            #         self.AStarPath[tuple(self.pathsToFind[0][1][2])] = None
+            #         self.AStarCostSoFar[tuple(self.pathsToFind[0][1][2])] = 0
+            #     else:  # set A* variables to progress values
+            #         self.AStarPriorityQ = self.priorityQ
+            #         self.AStarPath = self.path
+            #         self.AStarCostSoFar = self.costSoFar
+            #
+            #     while self.iterationsSoFar <= self.iterationsPerUpdate:
+            #         if len(self.AStarPriorityQ) == 0:  # return an invalid tuple if no path found
+            #             self.pathsToFind[0][1][0].route = [(0, 0)]
+            #             self.AStarPriorityQ.clear()
+            #             self.AStarPath.clear()
+            #             self.AStarCostSoFar.clear()
+            #             heapq.heappop(self.pathsToFind)[1]
+            #             if len(self.pathsToFind) > 0:
+            #                 # if a non discoverer has a shorter path than discoverer in front, set it to front, break
+            #                 # set a non discoverer to the front if there is one
+            #                 heapq.heapify(self.pathsToFind)
+            #                 if self.pathsToFind[0][1][0].occupation == "discoverer":
+            #                     for path in self.pathsToFind:
+            #                         if path[1][0].occupation != "discoverer":
+            #                             while self.pathsToFind[0][1][0].occupation == "discoverer":
+            #                                 oldPath = heapq.heappop(self.pathsToFind)
+            #                                 heapq.heappush(self.pathsToFind, oldPath)
+            #                                 # self.pathsToFind.append(oldPath)
+            #                             break
+            #
+            #                 # for path in paths, check if path
+            #                 self.doPathFinding()
+            #             break
+            #
+            #         currentNode = heapq.heappop(self.AStarPriorityQ)[1]
+            #
+            #         if currentNode == tuple(self.pathsToFind[0][1][3]):
+            #             if self.AStarPath[self.pathsToFind[0][1][2]] is not None:
+            #                 print("will get an error :((")
+            #             self.pathsToFind[0][1][0].route = Algorithms.getRoute \
+            #                 (self.pathsToFind[0][1][2], self.pathsToFind[0][1][3], self.AStarPath)
+            #             self.AStarPriorityQ.clear()
+            #             self.AStarPath.clear()
+            #             self.AStarCostSoFar.clear()
+            #             self.priorityQ.clear()
+            #             self.path.clear()
+            #             self.costSoFar.clear()
+            #             heapq.heappop(self.pathsToFind)[1]
+            #             if len(self.pathsToFind) > 0:
+            #                 heapq.heapify(self.pathsToFind)
+            #                 if self.pathsToFind[0][1][0].occupation == "discoverer":
+            #                     for path in self.pathsToFind:
+            #                         if path[1][0].occupation != "discoverer":
+            #                             while self.pathsToFind[0][1][0].occupation == "discoverer":
+            #                                 oldPath = heapq.heappop(self.pathsToFind)
+            #                                 heapq.heappush(self.pathsToFind, oldPath)
+            #                                 # self.pathsToFind.append(oldPath)
+            #                             break
+            #
+            #                 self.doPathFinding()
+            #             break
+            #
+            #         for neighbour in self.pathsToFind[0][1][1].neighbours(currentNode):
+            #             newCost = self.AStarCostSoFar[currentNode] + \
+            #                       Algorithms.tileDependentHeuristic(self.pathsToFind[0][1][1], neighbour, currentNode)
+            #             if (tuple(neighbour) not in self.AStarCostSoFar) or \
+            #                     (newCost < self.AStarCostSoFar[tuple(neighbour)]):
+            #                 self.AStarCostSoFar[tuple(neighbour)] = newCost
+            #                 priority = newCost + Algorithms.heuristic(self.pathsToFind[0][1][3], neighbour)
+            #                 self.AStarPath[tuple(neighbour)] = currentNode
+            #                 heapq.heappush(self.AStarPriorityQ, (priority, tuple(neighbour)))
+            #
+            #         self.iterationsSoFar += 1
+            #
+            #     self.iterationsSoFar = 0
+            #     self.priorityQ = self.AStarPriorityQ
+            #     self.path = self.AStarPath
+            #     self.costSoFar = self.AStarCostSoFar
+
+            # else:  # if entity is not discoverer, avoid fog
+            if len(self.priorityQ) == 0:  # new entity
+                self.AStarPriorityQ.clear()
+                heapq.heappush(self.AStarPriorityQ, (0, tuple(self.pathsToFind[0][1][2])))
+                self.AStarPath.clear()
+                self.AStarCostSoFar.clear()
+                self.AStarPath[tuple(self.pathsToFind[0][1][2])] = None
+                self.AStarCostSoFar[tuple(self.pathsToFind[0][1][2])] = 0
+            else:  # set A* variables to progress values
+                if self.pathsToFind[0][1][2] not in self.path:
+                    print("why start not in path..? D:")
+                self.AStarPriorityQ = self.priorityQ
+                self.AStarPath = self.path
+                self.AStarCostSoFar = self.costSoFar
+
+            while self.iterationsSoFar <= self.iterationsPerUpdate:
+                if len(self.AStarPriorityQ) == 0:
+                    self.pathsToFind[0][1][0].route = [(0, 0)]
                     self.AStarPriorityQ.clear()
-                    heapq.heappush(self.AStarPriorityQ, (0, tuple(self.pathsToFind[0][1][2])))
-                    self.AStarPath[tuple(self.pathsToFind[0][1][2])] = None
-                    self.AStarCostSoFar[tuple(self.pathsToFind[0][1][2])] = 0
-                else:  # set A* variables to progress values
-                    self.AStarPriorityQ = self.priorityQ
-                    self.AStarPath = self.path
-                    self.AStarCostSoFar = self.costSoFar
+                    self.AStarPath.clear()
+                    self.AStarCostSoFar.clear()
+                    heapq.heappop(self.pathsToFind)[1]
+                    if len(self.pathsToFind) > 0:
+                        # heapq.heapify(self.pathsToFind)
+                        # if self.pathsToFind[0][1][0].occupation == "discoverer":
+                        #     for path in self.pathsToFind:
+                        #         if path[1][0].occupation != "discoverer":
+                        #             while self.pathsToFind[0][1][0].occupation == "discoverer":
+                        #                 oldPath = heapq.heappop(self.pathsToFind)
+                        #                 heapq.heappush(self.pathsToFind, oldPath)
+                        #                 # self.pathsToFind.append(oldPath)
+                        #             break
 
-                while self.iterationsSoFar <= self.iterationsPerUpdate:
-                    if len(self.AStarPriorityQ) == 0:  # return an invalid tuple if no path found
-                        self.pathsToFind[0][1][0].route = [(0, 0)]
-                        self.AStarPriorityQ.clear()
-                        self.AStarPath.clear()
-                        self.AStarCostSoFar.clear()
-                        heapq.heappop(self.pathsToFind)[1]
-                        # self.pathsToFind.pop(0)
-                        if len(self.pathsToFind) > 0:
-                            self.doPathFinding()
-                        break
+                        self.doPathFinding()
+                    break
 
-                    currentNode = heapq.heappop(self.AStarPriorityQ)[1]
+                self.iterationsSoFar += 1
+                currentNode = heapq.heappop(self.AStarPriorityQ)[1]
 
-                    if currentNode == tuple(self.pathsToFind[0][1][3]):
-                        if currentNode == self.pathsToFind[0][1][2]:
-                            print("will get an error :((")
-                        self.pathsToFind[0][1][0].route = Algorithms.getRoute \
-                            (self.pathsToFind[0][1][2], self.pathsToFind[0][1][3], self.AStarPath)
-                        self.AStarPriorityQ.clear()
-                        self.AStarPath.clear()
-                        self.AStarCostSoFar.clear()
-                        heapq.heappop(self.pathsToFind)[1]
-                        if len(self.pathsToFind) > 0:
-                            self.doPathFinding()
-                        break
+                if currentNode == tuple(self.pathsToFind[0][1][3]):
+                    if self.pathsToFind[0][1][2] not in self.AStarPath:
+                        print("why start not in path..? D:")
+                    if self.AStarPath[self.pathsToFind[0][1][2]] is not None:
+                        print("will get an error :((")
+                    self.pathsToFind[0][1][0].route = Algorithms.getRoute \
+                        (self.pathsToFind[0][1][2], self.pathsToFind[0][1][3], self.AStarPath)
+                    self.AStarPriorityQ.clear()
+                    self.AStarPath.clear()
+                    self.AStarCostSoFar.clear()
+                    self.priorityQ.clear()
+                    self.path.clear()
+                    self.costSoFar.clear()
+                    heapq.heappop(self.pathsToFind)[1]
+                    if len(self.pathsToFind) > 0:
+                        # heapq.heapify(self.pathsToFind)
+                        # if self.pathsToFind[0][1][0].occupation == "discoverer":
+                        #     for path in self.pathsToFind:
+                        #         if path[1][0].occupation != "discoverer":
+                        #             while self.pathsToFind[0][1][0].occupation == "discoverer":
+                        #                 oldPath = heapq.heappop(self.pathsToFind)
+                        #                 heapq.heappush(self.pathsToFind, oldPath)
+                        #                 # self.pathsToFind.append(oldPath)
+                        #             break
 
-                    for neighbour in self.pathsToFind[0][1][1].neighbours(currentNode):
+                        self.doPathFinding()
+                    break
+
+                for neighbour in self.pathsToFind[0][1][1].neighboursExceptFog(currentNode):
+                    if neighbour not in self.pathsToFind[0][1][1].fogNodes:
                         newCost = self.AStarCostSoFar[currentNode] + \
-                                  Algorithms.tileDependentHeuristic(self.pathsToFind[0][1][1], neighbour, currentNode)
+                                  Algorithms.tileDependentHeuristic \
+                                      (self.pathsToFind[0][1][1], neighbour, currentNode)
+                        if (tuple(neighbour) not in self.AStarCostSoFar) or \
+                                (newCost < self.AStarCostSoFar[tuple(neighbour)]):
+                            self.AStarCostSoFar[tuple(neighbour)] = newCost
+                            priority = newCost + Algorithms.heuristic(self.pathsToFind[0][1][3], neighbour)
+                            self.AStarPath[tuple(neighbour)] = currentNode
+                            heapq.heappush(self.AStarPriorityQ, (priority, tuple(neighbour)))
+                    else:  # if neighbour is in a fogNode, plz don't choose this node I beg you :((
+                        newCost = self.AStarCostSoFar[currentNode] + 10000000000000000000000000000000000
                         if (tuple(neighbour) not in self.AStarCostSoFar) or \
                                 (newCost < self.AStarCostSoFar[tuple(neighbour)]):
                             self.AStarCostSoFar[tuple(neighbour)] = newCost
@@ -161,71 +291,88 @@ class WorldManager:
                             self.AStarPath[tuple(neighbour)] = currentNode
                             heapq.heappush(self.AStarPriorityQ, (priority, tuple(neighbour)))
 
-                    self.iterationsSoFar += 1
+            self.iterationsSoFar = 0
+            self.priorityQ = self.AStarPriorityQ
+            self.path = self.AStarPath
+            self.costSoFar = self.AStarCostSoFar
 
-                self.iterationsSoFar = 0
-                self.priorityQ = self.AStarPriorityQ
-                self.path = self.AStarPath
-                self.costSoFar = self.AStarCostSoFar
+        elif len(self.discoverPathsToFind) > 0:
+            if len(self.discoverPriorityQ) == 0:  # new entity
+                self.discoverAStarPriorityQ.clear()
+                heapq.heappush(self.discoverAStarPriorityQ, (0, tuple(self.discoverPathsToFind[0][1][2])))
+                self.discoverAStarPath[tuple(self.discoverPathsToFind[0][1][2])] = None
+                self.discoverAStarCostSoFar[tuple(self.discoverPathsToFind[0][1][2])] = 0
+            else:  # set A* variables to progress values
+                self.discoverAStarPriorityQ = self.discoverPriorityQ
+                self.discoverAStarPath = self.discoverPath
+                self.discoverAStarCostSoFar = self.discoverCostSoFar
 
-            else:  # if entity is not discoverer, avoid fog
-                if len(self.priorityQ) == 0:  # new entity
-                    self.AStarPriorityQ.clear()
-                    heapq.heappush(self.AStarPriorityQ, (0, tuple(self.pathsToFind[0][1][2])))
-                    self.AStarPath[tuple(self.pathsToFind[0][1][2])] = None
-                    self.AStarCostSoFar[tuple(self.pathsToFind[0][1][2])] = 0
-                else:  # set A* variables to progress values
-                    self.AStarPriorityQ = self.priorityQ
-                    self.AStarPath = self.path
-                    self.AStarCostSoFar = self.costSoFar
+            while self.iterationsSoFar <= self.iterationsPerUpdate:
+                if len(self.discoverAStarPriorityQ) == 0:  # return an invalid tuple if no path found
+                    self.discoverPathsToFind[0][1][0].route = [(0, 0)]
+                    self.discoverAStarPriorityQ.clear()
+                    self.discoverAStarPath.clear()
+                    self.discoverAStarCostSoFar.clear()
+                    heapq.heappop(self.discoverPathsToFind)[1]
+                    if len(self.discoverPathsToFind) > 0:
+                        # if a non discoverer has a shorter path than discoverer in front, set it to front, break
+                        # set a non discoverer to the front if there is one
+                        # heapq.heapify(self.discoverPathsToFind)
+                        # if self.discoverPathsToFind[0][1][0].occupation == "discoverer":
+                        #     for path in self.discoverPathsToFind:
+                        #         if path[1][0].occupation != "discoverer":
+                        #             while self.discoverPathsToFind[0][1][0].occupation == "discoverer":
+                        #                 oldPath = heapq.heappop(self.discoverPathsToFind)
+                        #                 heapq.heappush(self.discoverPathsToFind, oldPath)
+                        #                 # self.pathsToFind.append(oldPath)
+                        #             break
 
-                while self.iterationsSoFar <= self.iterationsPerUpdate:
-                    if len(self.AStarPriorityQ) == 0:
-                        self.pathsToFind[0][1][0].route = [(0, 0)]
-                        self.AStarPriorityQ.clear()
-                        self.AStarPath.clear()
-                        self.AStarCostSoFar.clear()
-                        heapq.heappop(self.pathsToFind)[1]
-                        if len(self.pathsToFind) > 0:
-                            self.doPathFinding()
-                        break
+                        # for path in paths, check if path
+                        self.doPathFinding()
+                    break
 
-                    self.iterationsSoFar += 1
-                    currentNode = heapq.heappop(self.AStarPriorityQ)[1]
+                currentNode = heapq.heappop(self.discoverAStarPriorityQ)[1]
 
-                    if currentNode == tuple(self.pathsToFind[0][1][3]):
-                        self.pathsToFind[0][1][0].route = Algorithms.getRoute\
-                            (self.pathsToFind[0][1][2], self.pathsToFind[0][1][3], self.AStarPath)
-                        self.AStarPriorityQ.clear()
-                        self.AStarPath.clear()
-                        self.AStarCostSoFar.clear()
-                        heapq.heappop(self.pathsToFind)[1]
-                        # self.pathsToFind.pop(0)
-                        if len(self.pathsToFind) > 0:
-                            self.doPathFinding()
-                        break
+                if currentNode == tuple(self.discoverPathsToFind[0][1][3]):
+                    if self.discoverAStarPath[self.discoverPathsToFind[0][1][2]] is not None:
+                        print("will get an error :((")
+                    self.discoverPathsToFind[0][1][0].route = Algorithms.getRoute \
+                        (self.discoverPathsToFind[0][1][2], self.discoverPathsToFind[0][1][3], self.discoverAStarPath)
+                    self.discoverAStarPriorityQ.clear()
+                    self.discoverAStarPath.clear()
+                    self.discoverAStarCostSoFar.clear()
+                    self.discoverPriorityQ.clear()
+                    self.discoverPath.clear()
+                    self.discoverCostSoFar.clear()
+                    heapq.heappop(self.discoverPathsToFind)[1]
+                    if len(self.discoverPathsToFind) > 0:
+                        # heapq.heapify(self.discoverPathsToFind)
+                        # if self.discoverPathsToFind[0][1][0].occupation == "discoverer":
+                        #     for path in self.discoverPathsToFind:
+                        #         if path[1][0].occupation != "discoverer":
+                        #             while self.discoverPathsToFind[0][1][0].occupation == "discoverer":
+                        #                 oldPath = heapq.heappop(self.discoverPathsToFind)
+                        #                 heapq.heappush(self.discoverPathsToFind, oldPath)
+                        #                 # self.pathsToFind.append(oldPath)
+                        #             break
 
-                    for neighbour in self.pathsToFind[0][1][1].neighboursExceptFog(currentNode):
-                        if neighbour not in self.pathsToFind[0][1][1].fogNodes:
-                            newCost = self.AStarCostSoFar[currentNode] + \
-                                      Algorithms.tileDependentHeuristic\
-                                          (self.pathsToFind[0][1][1], neighbour, currentNode)
-                            if (tuple(neighbour) not in self.AStarCostSoFar) or \
-                                    (newCost < self.AStarCostSoFar[tuple(neighbour)]):
-                                self.AStarCostSoFar[tuple(neighbour)] = newCost
-                                priority = newCost + Algorithms.heuristic(self.pathsToFind[0][1][3], neighbour)
-                                self.AStarPath[tuple(neighbour)] = currentNode
-                                heapq.heappush(self.AStarPriorityQ, (priority, tuple(neighbour)))
-                        else:  # if neighbour is in a fogNode, plz don't choose this node I beg you :((
-                            newCost = self.AStarCostSoFar[currentNode] + 10000000000000000000000000000000000
-                            if (tuple(neighbour) not in self.AStarCostSoFar) or \
-                                    (newCost < self.AStarCostSoFar[tuple(neighbour)]):
-                                self.AStarCostSoFar[tuple(neighbour)] = newCost
-                                priority = newCost + Algorithms.heuristic(self.pathsToFind[0][1][3], neighbour)
-                                self.AStarPath[tuple(neighbour)] = currentNode
-                                heapq.heappush(self.AStarPriorityQ, (priority, tuple(neighbour)))
+                        self.doPathFinding()
+                    break
 
-                self.iterationsSoFar = 0
-                self.priorityQ = self.AStarPriorityQ
-                self.path = self.AStarPath
-                self.costSoFar = self.AStarCostSoFar
+                for neighbour in self.discoverPathsToFind[0][1][1].neighbours(currentNode):
+                    newCost = self.discoverAStarCostSoFar[currentNode] + \
+                              Algorithms.tileDependentHeuristic\
+                                  (self.discoverPathsToFind[0][1][1], neighbour, currentNode)
+                    if (tuple(neighbour) not in self.discoverAStarCostSoFar) or \
+                            (newCost < self.discoverAStarCostSoFar[tuple(neighbour)]):
+                        self.discoverAStarCostSoFar[tuple(neighbour)] = newCost
+                        priority = newCost + Algorithms.heuristic(self.discoverPathsToFind[0][1][3], neighbour)
+                        self.discoverAStarPath[tuple(neighbour)] = currentNode
+                        heapq.heappush(self.discoverAStarPriorityQ, (priority, tuple(neighbour)))
+
+                self.iterationsSoFar += 1
+
+            self.iterationsSoFar = 0
+            self.discoverPriorityQ = self.discoverAStarPriorityQ
+            self.discoverPath = self.discoverAStarPath
+            self.discoverCostSoFar = self.discoverAStarCostSoFar

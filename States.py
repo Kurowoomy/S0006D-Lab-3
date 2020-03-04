@@ -127,7 +127,7 @@ class Discover:
                     # do path finding
                     # add character, graph, start and goal to pathsToFind in worldManager
                     if Algorithms.heuristic(character.variables["nextFogNode"], character.pos) <= 72:
-                        character.route = Algorithms.getRoute\
+                        character.route = Algorithms.getRoute \
                             (character.pos, character.variables["nextFogNode"],
                              Algorithms.findPathToNode(character.entityManager.worldManager.graph, character.pos,
                                                        character.variables["nextFogNode"]))
@@ -135,10 +135,32 @@ class Discover:
                     else:
                         # gör en heapq push med heuristic distance som sorterare/prioritet
                         # TODO: eventuellt ta bort paths för discoverers där dimman inte längre finns
-                        heapq.heappush(character.entityManager.worldManager.pathsToFind,
-                                       (Algorithms.heuristic(character.variables["nextFogNode"], character.pos),
-                                        [character, character.entityManager.worldManager.graph,
-                                        character.pos, character.variables["nextFogNode"]]))
+                        # if len(character.entityManager.worldManager.pathsToFind) > 0 and \
+                        #         len(character.entityManager.worldManager.priorityQ) > 0 and \
+                        #         Algorithms.heuristic(character.variables["nextFogNode"], character.pos) <= \
+                        #         character.entityManager.worldManager.pathsToFind[0][0]:
+                        #     character.entityManager.worldManager.discoverPathsToFind.append \
+                        #         ((Algorithms.heuristic(character.variables["nextFogNode"], character.pos),
+                        #           [character, character.entityManager.worldManager.graph,
+                        #            character.pos, character.variables["nextFogNode"]]))
+                        # else:
+                            # if len(character.entityManager.worldManager.pathsToFind) > 0 and \
+                            #         character.entityManager.worldManager.pathsToFind[0][1][
+                            #             0].occupation != "discoverer":
+                            #     character.entityManager.worldManager.pathsToFind.append \
+                            #         ((Algorithms.heuristic(character.variables["nextFogNode"], character.pos),
+                            #           [character, character.entityManager.worldManager.graph,
+                            #            character.pos, character.variables["nextFogNode"]]))
+                            # else:
+                        if len(character.entityManager.worldManager.discoverPathsToFind) > 0 and \
+                                len(character.entityManager.worldManager.discoverPriorityQ) > 0 and \
+                                Algorithms.heuristic(character.variables["nextFogNode"], character.pos) <= \
+                                character.entityManager.worldManager.discoverPathsToFind[0][0]:
+                            character.entityManager.worldManager.discoverPriorityQ.clear()
+                        heapq.heappush(character.entityManager.worldManager.discoverPathsToFind,
+                                           (Algorithms.heuristic(character.variables["nextFogNode"], character.pos),
+                                            [character, character.entityManager.worldManager.graph,
+                                             character.pos, character.variables["nextFogNode"]]))
                         # character.entityManager.worldManager.pathsToFind.append\
                         #     ([character, character.entityManager.worldManager.graph,
                         #       character.pos, character.variables["nextFogNode"]])
@@ -179,7 +201,7 @@ class ChopTree:
             # remove all move messages
             character.entityManager.worldManager.removeAllMessagesOf(Enumerations.message_type.move, character)
             character.entityManager.worldManager.messageDispatcher.dispatchMessage \
-                (character, character, Enumerations.message_type.treeIsChopped, 10, \
+                (character, character, Enumerations.message_type.treeIsChopped, 10,
                  character.entityManager.worldManager.trees[character.destination[0]])
             character.destination.pop(0)
             character.destination.pop(0)
@@ -211,10 +233,35 @@ class MoveToDestination:
             if not character.entityManager.worldManager.AStarHasOccurred:
                 # do path finding
                 # add character, graph, start and goal to pathsToFind in worldManager
+                # if Algorithms.heuristic(character.destination[0], character.pos < pathsToFind[0][0]:
+                # then don't add it at the front..? I guess I'll use the normal append for this case
+                # if it's not a discoverer,
+                # if len(character.entityManager.worldManager.pathsToFind) > 0 and \
+                #         len(character.entityManager.worldManager.priorityQ) > 0 and \
+                #         Algorithms.heuristic(character.destination[0], character.pos) <= \
+                #         character.entityManager.worldManager.pathsToFind[0][0]:
+                #     character.entityManager.worldManager.pathsToFind.append \
+                #         ((Algorithms.heuristic(character.destination[0], character.pos),
+                #           [character, character.entityManager.worldManager.graph,
+                #            character.pos, character.destination[0]]))
+                # else:  # om en discoverer har kortare path än en worker som ligger först, så kommer den ta över första platsen :(
+                    # lägg till discoverern via append om första path:en inte är en discoverer
+                    # if character.occupation == "discoverer" and \
+                    #         len(character.entityManager.worldManager.pathsToFind) > 0 and \
+                    #         character.entityManager.worldManager.pathsToFind[0][1][0].occupation != "discoverer":
+                    #     character.entityManager.worldManager.pathsToFind.append \
+                    #         ((Algorithms.heuristic(character.destination[0], character.pos),
+                    #           [character, character.entityManager.worldManager.graph,
+                    #            character.pos, character.destination[0]]))
+                if len(character.entityManager.worldManager.pathsToFind) > 0 and \
+                        len(character.entityManager.worldManager.priorityQ) > 0 and \
+                        Algorithms.heuristic(character.destination[0], character.pos) <= \
+                        character.entityManager.worldManager.pathsToFind[0][0]:
+                    character.entityManager.worldManager.priorityQ.clear()
                 heapq.heappush(character.entityManager.worldManager.pathsToFind,
-                               (Algorithms.heuristic(character.destination[0], character.pos),
-                                [character, character.entityManager.worldManager.graph,
-                                 character.pos, character.destination[0]]))
+                                   (Algorithms.heuristic(character.destination[0], character.pos),
+                                    [character, character.entityManager.worldManager.graph,
+                                     character.pos, character.destination[0]]))
                 # character.entityManager.worldManager.pathsToFind.append \
                 #     ([character, character.entityManager.worldManager.graph,
                 #       character.pos, character.destination[0]])
@@ -228,6 +275,14 @@ class MoveToDestination:
             pass  # wait for doPathFinding to finish
         elif character.route[0] == (0, 0):
             print("No path found")
+            # if this character still owns the location, release it
+            if character.destination[1] == Enumerations.location_type.tree and \
+                    character.entityManager.worldManager.trees[character.destination[0]].owner == character:
+                character.entityManager.worldManager.trees[character.destination[0]].owner = None
+            elif character.destination[1] == Enumerations.location_type.kiln and \
+                    character.entityManager.worldManager.buildings[character.destination[0]].owner == character:
+                character.entityManager.worldManager.buildings[character.destination[0]].owner = None
+
             while len(character.destination) > 0:
                 character.destination.pop(0)
             character.route.clear()
