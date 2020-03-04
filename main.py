@@ -38,7 +38,7 @@ for entity in range(entityAmount):
     ID += 1
 
 # create world
-for tree in range(5):
+for tree in range(700):
     worldManager.addNewTree()
 
 

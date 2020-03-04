@@ -84,31 +84,31 @@ class Discover:
 
             character.entityManager.worldManager.graph.fogNodes.remove(character.pos)
             # tell workers the tree is cleared of fog
-            if character.pos in character.entityManager.worldManager.trees:
-                for entity in character.entityManager.workers:
-                    if entity not in character.entityManager.isUpgrading and not entity.isWorking and \
-                            entity.variables["item"] is None:
-                        character.entityManager.worldManager.messageDispatcher.dispatchMessage \
-                            (entity, character, Enumerations.message_type.treeAppeared, 0, character.pos)
-
-            else:
-                if character in character.entityManager.worldManager.graph.groundNodes:
-                    character.entityManager.worldManager.graph.freeGroundNodes.append(character.pos)
+            # if character.pos in character.entityManager.worldManager.trees:
+            #     for entity in character.entityManager.workers:
+            #         if entity not in character.entityManager.isUpgrading and not entity.isWorking and \
+            #                 entity.variables["item"] is None:
+            #             character.entityManager.worldManager.messageDispatcher.dispatchMessage \
+            #                 (entity, character, Enumerations.message_type.treeAppeared, 0, character.pos)
+            #
+            # else:
+            if character in character.entityManager.worldManager.graph.groundNodes:
+                character.entityManager.worldManager.graph.freeGroundNodes.append(character.pos)
 
         for neighbour in character.entityManager.worldManager.graph.neighbours(character.pos):
             if neighbour in character.entityManager.worldManager.graph.fogNodes:
 
                 character.entityManager.worldManager.graph.fogNodes.remove(neighbour)
-                if neighbour in character.entityManager.worldManager.trees:
-                    for entity in character.entityManager.workers:
-                        if entity not in character.entityManager.isUpgrading and not entity.isWorking and \
-                                entity.variables["item"] is None:
-                            character.entityManager.worldManager.messageDispatcher.dispatchMessage \
-                                (entity, character, Enumerations.message_type.treeAppeared, 0, neighbour)
+                # if neighbour in character.entityManager.worldManager.trees:
+                #     for entity in character.entityManager.workers:
+                #         if entity not in character.entityManager.isUpgrading and not entity.isWorking and \
+                #                 entity.variables["item"] is None:
+                #             character.entityManager.worldManager.messageDispatcher.dispatchMessage \
+                #                 (entity, character, Enumerations.message_type.treeAppeared, 0, neighbour)
 
-                else:
-                    if neighbour in character.entityManager.worldManager.graph.groundNodes:
-                        character.entityManager.worldManager.graph.freeGroundNodes.append(neighbour)
+                # else:
+                if neighbour in character.entityManager.worldManager.graph.groundNodes:
+                    character.entityManager.worldManager.graph.freeGroundNodes.append(neighbour)
 
         # get path
         if character.variables["nextFogNode"] is None:
@@ -120,7 +120,7 @@ class Discover:
                 if character.variables["nextFogNode"] is None or \
                         len(character.entityManager.worldManager.graph.occupiedNodes) == \
                         len(character.entityManager.worldManager.graph.fogNodes):
-                    character.stateMachine.changeState(States.idle)
+                    pass
 
                 else:  # if nextFogNode is found
                     character.entityManager.worldManager.graph.occupiedNodes.append(character.variables["nextFogNode"])
@@ -131,7 +131,6 @@ class Discover:
                             (character.pos, character.variables["nextFogNode"],
                              Algorithms.findPathToNode(character.entityManager.worldManager.graph, character.pos,
                                                        character.variables["nextFogNode"]))
-                        pass  # get route immediately through BFS
                     else:
                         # gör en heapq push med heuristic distance som sorterare/prioritet
                         # TODO: eventuellt ta bort paths för discoverers där dimman inte längre finns
@@ -168,8 +167,6 @@ class Discover:
                     #    (character.entityManager.worldManager.graph, character.pos, character.variables["nextFogNode"])
                     # character.entityManager.worldManager.AStarHasOccurred = False
                     # character.route = Algorithms.getRoute(character.pos, character.variables["nextFogNode"], path)
-            else:
-                pass
 
         else:
             # get movin' to tha node
@@ -199,7 +196,7 @@ class ChopTree:
             character.stateMachine.changeState(States.moveToDestination)
         else:
             # remove all move messages
-            character.entityManager.worldManager.removeAllMessagesOf(Enumerations.message_type.move, character)
+            # character.entityManager.worldManager.removeAllMessagesOf(Enumerations.message_type.move, character)
             character.entityManager.worldManager.messageDispatcher.dispatchMessage \
                 (character, character, Enumerations.message_type.treeIsChopped, 10,
                  character.entityManager.worldManager.trees[character.destination[0]])
@@ -217,8 +214,13 @@ class CarryTree:
     def enter(self, character):
         character.isWorking = True
         if character.destination[0] != character.pos:
+            # route is popped when move message is sent, so it can't be used/saved for later
+            # do I check inside the remove function? If entity's route
             character.entityManager.worldManager.removeAllMessagesOf(Enumerations.message_type.move, character)
+            # move message node isn't specified so when route updates it removes the first node of the new route :(
             character.stateMachine.changeState(States.moveToDestination)
+        else:
+            print("worker is at kiln")
 
     def update(self, character):
         pass
@@ -253,15 +255,26 @@ class MoveToDestination:
                     #         ((Algorithms.heuristic(character.destination[0], character.pos),
                     #           [character, character.entityManager.worldManager.graph,
                     #            character.pos, character.destination[0]]))
-                if len(character.entityManager.worldManager.pathsToFind) > 0 and \
-                        len(character.entityManager.worldManager.priorityQ) > 0 and \
-                        Algorithms.heuristic(character.destination[0], character.pos) <= \
-                        character.entityManager.worldManager.pathsToFind[0][0]:
-                    character.entityManager.worldManager.priorityQ.clear()
-                heapq.heappush(character.entityManager.worldManager.pathsToFind,
-                                   (Algorithms.heuristic(character.destination[0], character.pos),
-                                    [character, character.entityManager.worldManager.graph,
-                                     character.pos, character.destination[0]]))
+                if character.occupation == "kilnManager" or character.occupation == "builder":
+                    if len(character.entityManager.worldManager.craftsmanPathsToFind) > 0 and \
+                            len(character.entityManager.worldManager.craftsmanPriorityQ) > 0 and \
+                            Algorithms.heuristic(character.destination[0], character.pos) <= \
+                            character.entityManager.worldManager.craftsmanPathsToFind[0][0]:
+                        character.entityManager.worldManager.craftsmanPriorityQ.clear()
+                    heapq.heappush(character.entityManager.worldManager.craftsmanPathsToFind,
+                                       (Algorithms.heuristic(character.destination[0], character.pos),
+                                        [character, character.entityManager.worldManager.graph,
+                                         character.pos, character.destination[0]]))
+                else:
+                    if len(character.entityManager.worldManager.pathsToFind) > 0 and \
+                            len(character.entityManager.worldManager.priorityQ) > 0 and \
+                            Algorithms.heuristic(character.destination[0], character.pos) <= \
+                            character.entityManager.worldManager.pathsToFind[0][0]:
+                        character.entityManager.worldManager.priorityQ.clear()
+                    heapq.heappush(character.entityManager.worldManager.pathsToFind,
+                                       (Algorithms.heuristic(character.destination[0], character.pos),
+                                        [character, character.entityManager.worldManager.graph,
+                                         character.pos, character.destination[0]]))
                 # character.entityManager.worldManager.pathsToFind.append \
                 #     ([character, character.entityManager.worldManager.graph,
                 #       character.pos, character.destination[0]])
@@ -352,8 +365,10 @@ class ManageKiln:
             character.destination.pop(0)
             character.destination.pop(0)
             # tell workers with a tree that they can start carryTree
+            # the workers must not stand on a tree
             for worker in character.entityManager.workers:
-                if worker.variables["item"] is not None:
+                if worker.variables["item"] is not None and \
+                        worker.pos not in character.entityManager.worldManager.trees:
                     worker.destination.append(character.pos)
                     worker.destination.append(Enumerations.location_type.kiln)
                     worker.stateMachine.changeState(States.carryTree)
@@ -367,6 +382,14 @@ class ManageKiln:
                 character.variables["isMakingCharcoal"] = True
                 character.entityManager.worldManager.messageDispatcher.dispatchMessage \
                     (character, character, Enumerations.message_type.charcoalIsDone, 5, None)
+            else:  # giveMeTrees, just like when charcoal is done
+                for worker in character.entityManager.workers:
+                    if worker.variables["item"] is not None and \
+                            worker.stateMachine.currentState is not States.carryTree and \
+                            worker.stateMachine.currentState is not States.chopTree and \
+                            len(worker.destination) <= 0:  # or destination == character.pos
+                        character.entityManager.worldManager.messageDispatcher.dispatchMessage \
+                            (worker, character, Enumerations.message_type.giveMeTrees, 0, None)
 
     def exit(self, character):
         pass

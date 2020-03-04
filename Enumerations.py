@@ -14,6 +14,7 @@ class message_type(enum.Enum):
     recieveMaterial = 10
     charcoalIsDone = 11
     isUpgradedKilnManager = 12
+    giveMeTrees = 13
 
 
 
