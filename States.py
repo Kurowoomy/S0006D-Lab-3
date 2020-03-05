@@ -219,8 +219,16 @@ class CarryTree:
             character.entityManager.worldManager.removeAllMessagesOf(Enumerations.message_type.move, character)
             # move message node isn't specified so when route updates it removes the first node of the new route :(
             character.stateMachine.changeState(States.moveToDestination)
-        else:
-            print("worker is at kiln")
+        else:  # do the same as in move-message -> kiln destination is reached
+            print("worker is already at kiln")
+            for kilnManager in character.entityManager.kilnManagers:
+                if kilnManager.pos == character.pos:
+                    character.entityManager.worldManager.messageDispatcher.dispatchMessage \
+                        (kilnManager, character, Enumerations.message_type.recieveMaterial, 0, \
+                         character.variables["item"])
+            while len(character.destination) > 0:
+                character.destination.pop(0)
+            character.stateMachine.changeState(States.wandering)
 
     def update(self, character):
         pass
@@ -330,7 +338,7 @@ class Build:
         else:
             character.destination.pop(0)
             character.destination.pop(0)
-            character.entityManager.worldManager.gatheredTreesAvailable -= 1
+            # character.entityManager.worldManager.gatheredTreesAvailable -= 1
             character.entityManager.worldManager.messageDispatcher.dispatchMessage \
                 (character, character, Enumerations.message_type.buildingIsDone, 5, None)
             character.stateMachine.changeState(States.idle)
@@ -376,20 +384,22 @@ class ManageKiln:
     def update(self, character):
         # if is at kiln and is its owner, check charcoal requirements
         # if enough trees in variable["items"], send message to itself to make charchoal
-        if character.pos in character.entityManager.worldManager.buildings and \
-                character.entityManager.worldManager.buildings[character.pos].owner is character:
-            if len(character.variables["items"]) >= 1 and not character.variables["isMakingCharcoal"]:
-                character.variables["isMakingCharcoal"] = True
-                character.entityManager.worldManager.messageDispatcher.dispatchMessage \
-                    (character, character, Enumerations.message_type.charcoalIsDone, 5, None)
-            else:  # giveMeTrees, just like when charcoal is done
-                for worker in character.entityManager.workers:
-                    if worker.variables["item"] is not None and \
-                            worker.stateMachine.currentState is not States.carryTree and \
-                            worker.stateMachine.currentState is not States.chopTree and \
-                            len(worker.destination) <= 0:  # or destination == character.pos
-                        character.entityManager.worldManager.messageDispatcher.dispatchMessage \
-                            (worker, character, Enumerations.message_type.giveMeTrees, 0, None)
+        # if character.pos in character.entityManager.worldManager.buildings and \
+        #         character.entityManager.worldManager.buildings[character.pos].owner is character:
+        if len(character.variables["items"]) >= 1 and not character.variables["isMakingCharcoal"]:
+            character.variables["isMakingCharcoal"] = True
+            character.entityManager.worldManager.messageDispatcher.dispatchMessage \
+                (character, character, Enumerations.message_type.charcoalIsDone, 5, None)
+        else:  # giveMeTrees
+            for worker in character.entityManager.workers:
+                # if worker.variables["item"] is not None and \
+                #         worker.stateMachine.currentState is not States.carryTree and \
+                #         worker.stateMachine.currentState is not States.chopTree and \
+                #         len(worker.destination) <= 0:  # or destination == character.pos
+                # a worker who has a tree but no destination
+                if worker.variables["item"] is not None and len(worker.destination) <= 0:
+                    character.entityManager.worldManager.messageDispatcher.dispatchMessage \
+                        (worker, character, Enumerations.message_type.giveMeTrees, 0, None)
 
     def exit(self, character):
         pass

@@ -11,13 +11,13 @@ class WorldManager:
     def __init__(self, entityManager, graph):
         self.entityManager = entityManager
         self.graph = graph
-        self.trees = {}
-        self.buildings = {}
+        self.trees = {}  # {(x, y) : Tree object}
+        self.buildings = {}  # {(x, y) : Building object}
         self.messageDispatcher = MessageSystem.MessageDispatcher()
         self.states = States.States()
         self.needDiscoverers = True
         self.needBuilders = True
-        self.needKilnManager = True
+        self.needKilnManager = False
         self.gatheredTreesAvailable = 0
         self.needKiln = True
         self.AStarHasOccurred = False
@@ -29,6 +29,7 @@ class WorldManager:
         self.craftsmanPathsToFind = []
         self.iterationsPerUpdate = 15
         self.iterationsSoFar = 0
+        self.pathsFoundForWorkers = 0
 
         self.costSoFar = {}
         self.AStarCostSoFar = {}
@@ -54,18 +55,35 @@ class WorldManager:
 
     def update(self):
         # upgrading to builder and kilnManager
-        if self.gatheredTreesAvailable >= 0 and self.needBuilders:
+        if self.needBuilders:
             for entity in self.entityManager.workers:
                 if not entity.isWorking and entity not in self.entityManager.isUpgrading:
                     entity.stateMachine.changeState(self.states.upgradingToBuilder)
                     self.needBuilders = False
                     break
-        if self.gatheredTreesAvailable >= 0 and self.needKilnManager:
+        if self.needKilnManager:
             for entity in self.entityManager.workers:
                 if not entity.isWorking and entity not in self.entityManager.isUpgrading:
                     entity.stateMachine.changeState(self.states.upgradingToKilnManager)
                     self.needKilnManager = False
                     break
+        if self.needKiln:
+            for builder in self.entityManager.builders:
+                if not builder.isWorking and len(builder.variables["items"]) >= 1:
+                    # look for free buildingSpot not in fogNode
+                    while len(builder.destination) > 0:
+                        builder.destination.pop(0)
+                    for spot in self.buildingSpots:
+                        if spot not in self.buildings and spot not in self.graph.fogNodes:
+                            builder.destination.append(spot)
+                            builder.destination.append(Enumerations.location_type.kiln)
+                            break
+
+                    if len(builder.destination) > 0:  # if kiln found, start building
+                        self.needKiln = False
+                        builder.stateMachine.changeState(self.states.build)
+                    else:  # if destination not found, set to idle
+                        builder.stateMachine.changeState(self.states.idle)
 
         # make all free trees request to be chopped
         for tree in self.trees:
@@ -227,7 +245,7 @@ class WorldManager:
             self.craftsmanPath = self.craftsmanAStarPath
             self.craftsmanCostSoFar = self.craftsmanAStarCostSoFar
 
-        elif len(self.pathsToFind) > 0:  # 0:entity, 1:graph, 2:start, 3:goal
+        elif len(self.pathsToFind) > 0 and self.pathsFoundForWorkers <= 5:  # 0:entity, 1:graph, 2:start, 3:goal
 
             # if self.pathsToFind[0][1][0].occupation == "discoverer":
             #     if len(self.priorityQ) == 0:  # new entity
@@ -331,6 +349,10 @@ class WorldManager:
                     self.AStarPath.clear()
                     self.AStarCostSoFar.clear()
                     heapq.heappop(self.pathsToFind)[1]
+                    if self.pathsFoundForWorkers > 5:
+                        self.pathsFoundForWorkers = 0
+                    else:
+                        self.pathsFoundForWorkers += 1
                     if len(self.pathsToFind) > 0:
                         # heapq.heapify(self.pathsToFind)
                         # if self.pathsToFind[0][1][0].occupation == "discoverer":
@@ -362,6 +384,10 @@ class WorldManager:
                     self.path.clear()
                     self.costSoFar.clear()
                     heapq.heappop(self.pathsToFind)[1]
+                    if self.pathsFoundForWorkers > 5:
+                        self.pathsFoundForWorkers = 0
+                    else:
+                        self.pathsFoundForWorkers += 1
                     if len(self.pathsToFind) > 0:
                         # heapq.heapify(self.pathsToFind)
                         # if self.pathsToFind[0][1][0].occupation == "discoverer":
@@ -402,6 +428,7 @@ class WorldManager:
             self.costSoFar = self.AStarCostSoFar
 
         elif len(self.discoverPathsToFind) > 0:
+            self.pathsFoundForWorkers = 0
             if len(self.discoverPriorityQ) == 0:  # new entity
                 self.discoverAStarPriorityQ.clear()
                 heapq.heappush(self.discoverAStarPriorityQ, (0, tuple(self.discoverPathsToFind[0][1][2])))

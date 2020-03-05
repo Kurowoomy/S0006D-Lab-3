@@ -21,3 +21,4 @@ class message_type(enum.Enum):
 class location_type(enum.Enum):
     tree = 1
     kiln = 2
+    builder = 3

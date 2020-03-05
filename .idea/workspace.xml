@@ -2,10 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e8cd8ba4-f360-4213-b353-479d84d261fd" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/variables.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Entity.py" beforeDir="false" afterPath="$PROJECT_DIR$/Entity.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Enumerations.py" beforeDir="false" afterPath="$PROJECT_DIR$/Enumerations.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MessageSystem.py" beforeDir="false" afterPath="$PROJECT_DIR$/MessageSystem.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/States.py" beforeDir="false" afterPath="$PROJECT_DIR$/States.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/WorldManager.py" beforeDir="false" afterPath="$PROJECT_DIR$/WorldManager.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
@@ -107,50 +107,54 @@
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
     <state x="99" y="184" key="CommitChangelistDialog2/0.0.1920.1170@0.0.1920.1170" timestamp="1582885947222" />
-    <state width="1541" height="466" key="DebuggerActiveHint" timestamp="1583349192287">
+    <state width="1541" height="466" key="DebuggerActiveHint" timestamp="1583422720162">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
-    <state width="1541" height="466" key="DebuggerActiveHint/0.0.1920.1170@0.0.1920.1170" timestamp="1583349192287" />
+    <state width="1541" height="466" key="DebuggerActiveHint/0.0.1920.1170@0.0.1920.1170" timestamp="1583422720162" />
     <state x="740" y="341" key="FileChooserDialogImpl" timestamp="1582730053358">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
     <state x="740" y="341" key="FileChooserDialogImpl/0.0.1920.1170@0.0.1920.1170" timestamp="1582730053358" />
-    <state width="1899" height="258" key="GridCell.Tab.0.bottom" timestamp="1583350615671">
+    <state width="1069" height="258" key="GridCell.Tab.0.bottom" timestamp="1583429176361">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
-    <state width="1899" height="258" key="GridCell.Tab.0.bottom/0.0.1920.1170@0.0.1920.1170" timestamp="1583350615671" />
-    <state width="1899" height="258" key="GridCell.Tab.0.center" timestamp="1583350615671">
+    <state width="1069" height="258" key="GridCell.Tab.0.bottom/0.0.1920.1170@0.0.1920.1170" timestamp="1583429176361" />
+    <state width="1069" height="258" key="GridCell.Tab.0.center" timestamp="1583429176361">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
-    <state width="1899" height="258" key="GridCell.Tab.0.center/0.0.1920.1170@0.0.1920.1170" timestamp="1583350615671" />
-    <state width="1899" height="258" key="GridCell.Tab.0.left" timestamp="1583350615671">
+    <state width="1069" height="258" key="GridCell.Tab.0.center/0.0.1920.1170@0.0.1920.1170" timestamp="1583429176361" />
+    <state width="1069" height="258" key="GridCell.Tab.0.left" timestamp="1583429176361">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
-    <state width="1899" height="258" key="GridCell.Tab.0.left/0.0.1920.1170@0.0.1920.1170" timestamp="1583350615671" />
-    <state width="1899" height="258" key="GridCell.Tab.0.right" timestamp="1583350615671">
+    <state width="1069" height="258" key="GridCell.Tab.0.left/0.0.1920.1170@0.0.1920.1170" timestamp="1583429176361" />
+    <state width="1069" height="258" key="GridCell.Tab.0.right" timestamp="1583429176361">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
-    <state width="1899" height="258" key="GridCell.Tab.0.right/0.0.1920.1170@0.0.1920.1170" timestamp="1583350615671" />
-    <state width="1899" height="258" key="GridCell.Tab.1.bottom" timestamp="1583350446674">
+    <state width="1069" height="258" key="GridCell.Tab.0.right/0.0.1920.1170@0.0.1920.1170" timestamp="1583429176361" />
+    <state width="1069" height="258" key="GridCell.Tab.1.bottom" timestamp="1583429176318">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
-    <state width="1899" height="258" key="GridCell.Tab.1.bottom/0.0.1920.1170@0.0.1920.1170" timestamp="1583350446674" />
-    <state width="1899" height="258" key="GridCell.Tab.1.center" timestamp="1583350446674">
+    <state width="1069" height="258" key="GridCell.Tab.1.bottom/0.0.1920.1170@0.0.1920.1170" timestamp="1583429176318" />
+    <state width="1069" height="258" key="GridCell.Tab.1.center" timestamp="1583429176318">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
-    <state width="1899" height="258" key="GridCell.Tab.1.center/0.0.1920.1170@0.0.1920.1170" timestamp="1583350446674" />
-    <state width="1899" height="258" key="GridCell.Tab.1.left" timestamp="1583350446674">
+    <state width="1069" height="258" key="GridCell.Tab.1.center/0.0.1920.1170@0.0.1920.1170" timestamp="1583429176318" />
+    <state width="1069" height="258" key="GridCell.Tab.1.left" timestamp="1583429176318">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
-    <state width="1899" height="258" key="GridCell.Tab.1.left/0.0.1920.1170@0.0.1920.1170" timestamp="1583350446674" />
-    <state width="1899" height="258" key="GridCell.Tab.1.right" timestamp="1583350446674">
+    <state width="1069" height="258" key="GridCell.Tab.1.left/0.0.1920.1170@0.0.1920.1170" timestamp="1583429176318" />
+    <state width="1069" height="258" key="GridCell.Tab.1.right" timestamp="1583429176318">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
-    <state width="1899" height="258" key="GridCell.Tab.1.right/0.0.1920.1170@0.0.1920.1170" timestamp="1583350446674" />
+    <state width="1069" height="258" key="GridCell.Tab.1.right/0.0.1920.1170@0.0.1920.1170" timestamp="1583429176318" />
     <state x="0" y="232" key="SettingsEditor" timestamp="1582825855806">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
     <state x="0" y="232" key="SettingsEditor/0.0.1920.1170@0.0.1920.1170" timestamp="1582825855806" />
+    <state x="1102" y="341" width="768" height="503" key="dock-window-1" timestamp="1583429265403">
+      <screen x="0" y="0" width="1920" height="1170" />
+    </state>
+    <state x="1102" y="341" width="768" height="503" key="dock-window-1/0.0.1920.1170@0.0.1920.1170" timestamp="1583429265403" />
     <state x="143" y="263" width="672" height="678" key="search.everywhere.popup" timestamp="1582905515694">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
@@ -186,22 +190,22 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/WorldManager.py</url>
-          <line>352</line>
+          <line>374</line>
           <option name="timeStamp" value="427" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/WorldManager.py</url>
-          <line>321</line>
+          <line>339</line>
           <option name="timeStamp" value="432" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/WorldManager.py</url>
-          <line>390</line>
+          <line>416</line>
           <option name="timeStamp" value="434" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/Entity.py</url>
-          <line>234</line>
+          <line>254</line>
           <option name="timeStamp" value="469" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -211,8 +215,23 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/Entity.py</url>
-          <line>179</line>
+          <line>197</line>
           <option name="timeStamp" value="505" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Entity.py</url>
+          <line>250</line>
+          <option name="timeStamp" value="517" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Entity.py</url>
+          <line>248</line>
+          <option name="timeStamp" value="518" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/WorldManager.py</url>
+          <line>387</line>
+          <option name="timeStamp" value="533" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

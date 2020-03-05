@@ -14,7 +14,7 @@ class Entity:
         self.ID = ID
         self.variables = {}
         self.route = []
-        self.speed = 0.05  # lower value is faster, 1 is normal speed
+        self.speed = 0.0001  # lower value is faster, 1 is normal speed
         self.destinationDistance = 0
         self.destination = []  # [0] is (x, y), [1] is location_type
         self.isWorking = False
@@ -149,6 +149,24 @@ class Entity:
                         else:
                             self.stateMachine.changeState(States.States.chopTree)
 
+                    elif self.pos == self.destination[0] and self.destination[1] == Enumerations.location_type.builder:
+                        builderFound = False
+                        for builder in self.entityManager.builders:  # find the builder for this pos
+                            if builder.pos == self.pos:  # safe to hand over its tree
+                                builderFound = True
+                                self.entityManager.worldManager.messageDispatcher.dispatchMessage \
+                                    (builder, self, Enumerations.message_type.recieveMaterial, 0, \
+                                     self.variables["item"])
+                                while len(self.destination) > 0:
+                                    self.destination.pop(0)
+                                self.stateMachine.changeState(States.States.wandering)
+                                break
+
+                        if not builderFound:  # builder is not here anymore
+                            while len(self.destination) > 0:
+                                self.destination.pop(0)
+                            self.stateMachine.changeState(States.States.idle)
+
                     else:
                         self.stateMachine.changeState(States.States.moveToDestination)
 
@@ -229,40 +247,17 @@ class Entity:
             if self.occupation == "discoverer":
                 # reset owner etc
                 telegram.extraInfo.owner = None
+            elif self.occupation == "kilnManager":
+                telegram.extraInfo.owner = None
             else:
-                self.entityManager.worldManager.gatheredTreesAvailable += 1
+                # self.entityManager.worldManager.gatheredTreesAvailable += 1
                 if self.pos not in self.entityManager.worldManager.trees:
                     print("tree is not here")  # destination is set to kilnManager while chopping tree
                     self.variables["item"] = None  # apparently it upgraded to discoverer while chopping tree
                 else:
                     self.variables["item"] = self.entityManager.worldManager.trees[self.pos]
                     self.entityManager.worldManager.trees.pop(self.pos, telegram.extraInfo)
-                # tell builder to start building
-                if self.entityManager.worldManager.gatheredTreesAvailable >= 1 \
-                        and self.entityManager.worldManager.needKiln:
-                    for builder in self.entityManager.builders:
-                        if not builder.isWorking and self.entityManager.worldManager.needKiln:
-
-                            # decide spot to build
-                            while len(builder.destination) > 0:
-                                builder.destination.pop(0)
-                            for spot in self.entityManager.worldManager.buildingSpots:
-                                if spot not in self.entityManager.worldManager.buildings and \
-                                        spot not in self.entityManager.worldManager.graph.fogNodes:
-                                    builder.destination.append(spot)
-                                    builder.destination.append(Enumerations.location_type.kiln)
-                                # if kiln not found, do nothing
-                            if len(builder.destination) > 0:
-                                builder.stateMachine.changeState(States.States.build)
-                                for kilnManager in self.entityManager.kilnManagers:
-                                    if not kilnManager.isWorking:
-                                        kilnManager.destination.append(builder.destination[0])
-                                        kilnManager.destination.append(Enumerations.location_type.kiln)
-                                        kilnManager.stateMachine.changeState(States.States.manageKiln)
-                                        break
-
                 # add new tree
-                # self.entityManager.worldManager.trees.pop(self.pos, telegram.extraInfo)
                 self.entityManager.worldManager.graph.freeGroundNodes.append(self.pos)
                 newTree = self.entityManager.worldManager.addNewTree()
                 if newTree.pos in self.entityManager.worldManager.graph.freeGroundNodes:
@@ -274,27 +269,58 @@ class Entity:
                 #             self.entityManager.worldManager.messageDispatcher.dispatchMessage \
                 #                 (entity, self, Enumerations.message_type.treeAppeared, 0, newTree.pos)
 
-                # find nearest kilnManager
+                # not sure why I have this as an entity field but it's reset here every time so whatever
                 self.destinationDistance = 1000000
                 while len(self.destination) > 0:
                     self.destination.pop(0)
                 self.destination.append(self.pos)
                 self.destination.append(None)
-                for kilnManager in self.entityManager.kilnManagers:
-                    newDistance = Algorithms.heuristic(kilnManager.pos, self.pos)
-                    if newDistance < self.destinationDistance and \
-                            kilnManager.pos in self.entityManager.worldManager.buildings:
-                        self.destinationDistance = newDistance
-                        self.destination[0] = kilnManager.pos
-                        self.destination[1] = Enumerations.location_type.kiln
 
-                # start carrying tree if has destination
-                if self.destination[1] is None:
-                    self.destination.pop(0)
-                    self.destination.pop(0)
-                    self.stateMachine.changeState(States.States.wandering)
-                else:
+                # find builder who needs trees
+                if self.entityManager.worldManager.needKiln:
+                    for builder in self.entityManager.builders:
+                        # if builder needs trees, set destination
+                        if not builder.isWorking and len(builder.variables["items"]) < 1:
+                            # set destination to this builder, break
+                            self.destination[0] = builder.pos
+                            self.destination[1] = Enumerations.location_type.builder
+                            break
+
+                            # decide spot to build for this builder
+                            # NOTE: only works if worldManager only has one builder
+                            # while len(builder.destination) > 0:
+                            #     builder.destination.pop(0)
+                            # for spot in self.entityManager.worldManager.buildingSpots:
+                            #     if spot not in self.entityManager.worldManager.buildings and \
+                            #             spot not in self.entityManager.worldManager.graph.fogNodes:
+                            #         builder.destination.append(spot)
+                            #         builder.destination.append(Enumerations.location_type.kiln)
+                            #     # if kiln not found, do nothing
+                            # if len(builder.destination) > 0:
+                            #     builder.stateMachine.changeState(States.States.build)
+                                # for kilnManager in self.entityManager.kilnManagers:  # do this in buildingIsDone
+                                #     if not kilnManager.isWorking:
+                                #         kilnManager.destination.append(builder.destination[0])
+                                #         kilnManager.destination.append(Enumerations.location_type.kiln)
+                                #         kilnManager.stateMachine.changeState(States.States.manageKiln)
+                                #         break
+
+                else:  # find nearest kilnManager
+                    for kilnManager in self.entityManager.kilnManagers:
+                        newDistance = Algorithms.heuristic(kilnManager.pos, self.pos)
+                        if newDistance < self.destinationDistance and \
+                                kilnManager.pos in self.entityManager.worldManager.buildings:
+                            self.destinationDistance = newDistance
+                            self.destination[0] = kilnManager.pos
+                            self.destination[1] = Enumerations.location_type.kiln
+
+                # start carrying tree if destination is found
+                if self.destination[1] is not None:
                     self.stateMachine.changeState(States.States.carryTree)
+                else:
+                    self.destination.pop(0)
+                    self.destination.pop(0)
+                    self.stateMachine.changeState(States.States.idle)
 
         elif telegram.msg == Enumerations.message_type.isUpgradedBuilder:
             self.occupation = "builder"
@@ -303,6 +329,7 @@ class Entity:
             self.entityManager.workers.remove(self)
             self.variables.popitem()
             self.variables["isBuilding"] = False
+            self.variables["items"] = []  # list of tree objects
 
             self.entityManager.worldManager.needBuilders = False
             self.entityManager.worldManager.removeAllMessagesOf(Enumerations.message_type.move, self)
@@ -319,8 +346,13 @@ class Entity:
 
             self.isWorking = False
             self.variables["isBuilding"] = False
-            if len(self.entityManager.worldManager.buildings) >= 4:
-                self.entityManager.worldManager.needKiln = False
+            for treesRequired in range(1):
+                # remove first inserted tree from items
+                self.variables["items"].pop(0)
+
+            # set needKiln to False if amount of buildings has reached max (4)
+            # if len(self.entityManager.worldManager.buildings) >= 4:
+            #     self.entityManager.worldManager.needKiln = False
 
             # set kilnManager for this pos to owner
             for kilnManager in self.entityManager.kilnManagers:
@@ -342,10 +374,8 @@ class Entity:
                             kilnManager.destination.pop(0)
                         kilnManager.destination.append(self.pos)
                         kilnManager.destination.append(Enumerations.location_type.kiln)
-                        kilnManager.stateMachine.changeState(States.States.manageKiln)  # ta bort den här raden
+                        kilnManager.stateMachine.changeState(States.States.manageKiln)
                         break
-
-            # check if
 
             neighbours = self.entityManager.worldManager.graph.neighboursExceptFog(self.pos)
             self.move(neighbours[0], self.entityManager.worldManager.graph)
@@ -359,25 +389,34 @@ class Entity:
             self.variables.popitem()
             self.variables["items"] = []
             self.variables["isMakingCharcoal"] = False
-
-            if len(self.entityManager.kilnManagers) < 4:
-                self.entityManager.worldManager.needKilnManager = True
-            else:
-                self.entityManager.worldManager.needKilnManager = False
-            self.entityManager.worldManager.removeAllMessagesOf(Enumerations.message_type.move, self)
-            self.route.clear()
             self.isWorking = False
+
+            # for when max amount of kilnManagers is reached.
+            # Not doing much if enabled anyway since builder is the one who decides if kilnManager is needed.
+            # if len(self.entityManager.kilnManagers) < 4:
+            #     self.entityManager.worldManager.needKilnManager = True
+            # else:
+            #     self.entityManager.worldManager.needKilnManager = False
+
+            # this will probably cause the bug I struggled with yesterday, except it's not a worker.
+            # I remember seeing similar behaviour on a kilnManager sometimes before and this is most likely why
+            # self.entityManager.worldManager.removeAllMessagesOf(Enumerations.message_type.move, self)
+
+            self.route.clear()  # NOTE: mysterious reset, might not be safe
             while len(self.destination) > 0:
                 self.destination.pop(0)
 
             # check if any empty buildings, changeState.manageKiln
             for building in self.entityManager.worldManager.buildings:
                 if self.entityManager.worldManager.buildings[building].owner is None:
-                    self.entityManager.worldManager.buildings[self.pos].owner = self
+                    self.entityManager.worldManager.buildings[building].owner = self
+                    self.destination.append(building)
+                    self.destination.append(Enumerations.location_type.kiln)
                     self.stateMachine.changeState(States.States.manageKiln)
                     break
 
-            self.stateMachine.changeState(States.States.idle)
+            if len(self.destination) <= 0:  # if no building found, wait for builder to call it
+                self.stateMachine.changeState(States.States.idle)
 
         elif telegram.msg == Enumerations.message_type.charcoalIsDone:
             self.entityManager.worldManager.charcoal += 1
@@ -401,6 +440,31 @@ class Entity:
             # self.entityManager.worldManager.trees.pop\
             #     (telegram.extraInfo.pos, telegram.extraInfo)
             telegram.sender.variables["item"] = None
+            if self.occupation == "builder":
+                # if builder has enough trees, start building
+                if len(self.variables["items"]) >= 1:
+                    self.entityManager.worldManager.needKilnManager = True
+
+                    # set destination to free buildingSpot
+                    while len(self.destination) > 0:
+                        self.destination.pop(0)
+                    for spot in self.entityManager.worldManager.buildingSpots:
+                        if spot not in self.entityManager.worldManager.buildings and \
+                                spot not in self.entityManager.worldManager.graph.fogNodes:
+                            self.destination.append(spot)
+                            self.destination.append(Enumerations.location_type.kiln)
+                            break
+
+                    if len(self.destination) > 0:  # if kiln found, start building
+                        self.entityManager.worldManager.needKiln = False
+                        self.stateMachine.changeState(States.States.build)
+                    else:  # if destination not found, set to idle
+                        self.stateMachine.changeState(States.States.idle)
+
+            elif self.occupation == "kilnManager":  # make more kilns if this kilnManager has enough trees
+                if (len(self.variables["items"]) > (1 + 1) and self.variables["isMakingCharcoal"]) or \
+                        (len(self.variables["items"]) > 1 and not self.variables["isMakingCharcoal"]):
+                    self.entityManager.worldManager.needKiln = True
 
         elif telegram.msg == Enumerations.message_type.giveMeTrees:
             while len(self.destination) > 0:

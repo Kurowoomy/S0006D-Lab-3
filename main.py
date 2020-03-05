@@ -6,7 +6,11 @@ import WorldManager
 import Graph
 import StateMachine
 import time
+import json
 
+f = open("variables.json")
+variables = json.load(f)
+print(variables["speed"])  # yay it works!
 
 pygame.init()
 screen = pygame.display.set_mode((1080, 1080))
@@ -38,7 +42,7 @@ for entity in range(entityAmount):
     ID += 1
 
 # create world
-for tree in range(700):
+for tree in range(5):
     worldManager.addNewTree()
 
 
