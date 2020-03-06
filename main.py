@@ -15,7 +15,8 @@ pygame.init()
 screen = pygame.display.set_mode((1080, 1080))
 pygame.display.set_caption("Strategiskt AI")
 parser = Parser.Parser()
-worldManager = WorldManager.WorldManager(EntityManager.EntityManager(), Graph.Graph())
+worldManager = WorldManager.WorldManager(EntityManager.EntityManager(), Graph.Graph(),
+                                         variables["worldManagerVariables"], variables["moveVariables"])
 
 worldManager.entityManager.worldManager = worldManager
 mapName = variables["mainVariables"]["mapName"]
@@ -31,7 +32,7 @@ for entity in range(entityAmount):
     if startPosIndex >= 9:
         startPosIndex = 0
     newEntity = Entity.Entity("worker", worldManager.graph.startNodes[startPosIndex],
-                              worldManager.entityManager, ID)
+                              worldManager.entityManager, ID, variables["entityVariables"])
     newEntity.variables["item"] = None
     stateMachine = StateMachine.StateMachine(worldManager.states.wandering, newEntity)
     newEntity.stateMachine = stateMachine

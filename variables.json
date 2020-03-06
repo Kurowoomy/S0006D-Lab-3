@@ -8,15 +8,15 @@
   },
   "entityVariables":
   {
-    "speed": 0.0005,
+    "speed": 0.001,
     "treeChopTime": 30,
     "charcoalPerProcess": 1,
     "treesPerCharcoal": 2,
     "timePerCharcoal": 30,
     "treesPerBuilding": 10,
     "timePerBuilding": 60,
-    "discovererUpgradeTime": 60,
-    "craftsManUpgradeTime": 120,
+    "discovererUpgradeTime": 6,
+    "craftsManUpgradeTime": 12,
     "maxDistanceNextFogNodeBFS": 72
   },
   "moveVariables":
@@ -30,8 +30,10 @@
   {
     "charcoalGoal": 200,
     "pathIterationsPerUpdate": 15,
-    "buildingSots": [[72, 90], [23, 90], [72, 37], [26, 11]],
-    "maxDistanceTreeFromWorker": 100,
-    "workerPathsPerDiscoverer": 5
+    "buildingSpots": [[72, 90], [23, 90], [72, 37], [26, 11]],
+    "closeDistanceTreeFromWorker": 100,
+    "maxDistanceTreeFromWorker": 300,
+    "workerPathsPerDiscoverer": 30,
+    "maxDiscovererAmount": 5
   }
 }

@@ -11,11 +11,19 @@ def findNearestFogNodeBFS(graph, start):
     maxLoops = 3
     maxCost = maxLoops * 10 + maxLoops * 14
     currentNode = start
+    neighbourOccupied = False
     while heuristic(currentNode, start) <= maxCost:
         currentNode = queue.popleft()
 
         if currentNode in graph.fogNodes and currentNode not in graph.occupiedNodes:
-            return currentNode, path
+            # goal neighbours can't be in occupied nodes either
+            # for each neighbour, check if in occupiedNodes
+            for neighbour in graph.neighbours(currentNode):
+                if neighbour in graph.occupiedNodes:
+                    neighbourOccupied = True
+                    break
+            if not neighbourOccupied:
+                return currentNode, path
 
         for neighbour in graph.neighbours(currentNode):
             if tuple(neighbour) not in path:
@@ -37,7 +45,7 @@ def findNearestRandomFogNode(graph):
     return currentNode
 
 
-def findPathToNode(graph, start, goal):
+def findPathToNode(graph, start, goal, moveVariables):
     priorityQ = []
     heapq.heappush(priorityQ, (0, tuple(start)))
     path = {tuple(start): None}
@@ -50,7 +58,7 @@ def findPathToNode(graph, start, goal):
             break
 
         for neighbour in graph.neighbours(currentNode):
-            newCost = costSoFar[currentNode] + tileDependentHeuristic(graph, neighbour, currentNode)
+            newCost = costSoFar[currentNode] + tileDependentHeuristic(graph, neighbour, currentNode, moveVariables)
             if (tuple(neighbour) not in costSoFar) or (newCost < costSoFar[tuple(neighbour)]):
                 costSoFar[tuple(neighbour)] = newCost
                 priority = newCost + heuristic(goal, neighbour)
@@ -122,17 +130,17 @@ def heuristic(goal, next):
         return 14 * abs(goal[1] - next[1]) + remaining * 10
 
 
-def tileDependentHeuristic(graph, next, current):
+def tileDependentHeuristic(graph, next, current, moveVariables):
     if current in graph.groundNodes and next in graph.groundNodes:
-        diagonalCost = 7
-        straightCost = 5
+        diagonalCost = moveVariables["groundDiagonal"] * 2
+        straightCost = moveVariables["groundStraight"] * 2
     elif (current in graph.groundNodes and next in graph.swampNodes) or \
             (current in graph.swampNodes and next in graph.groundNodes):
-        diagonalCost = 21
-        straightCost = 15
+        diagonalCost = moveVariables["groundDiagonal"] + moveVariables["swampDiagonal"]
+        straightCost = moveVariables["groundStraight"] + moveVariables["swampStraight"]
     elif current in graph.swampNodes and next in graph.swampNodes:
-        diagonalCost = 28
-        straightCost = 20
+        diagonalCost = moveVariables["swampDiagonal"] * 2
+        straightCost = moveVariables["swampStraight"] * 2
 
     remaining = abs(abs(next[0] - current[0]) - abs(next[1] - current[1]))
     if abs(next[0] - current[0]) < abs(next[1] - current[1]):

@@ -6,7 +6,7 @@ import random
 
 
 class Entity:
-    def __init__(self, occupation, pos, entityManager, ID):
+    def __init__(self, occupation, pos, entityManager, ID, entityVariables):
         self.occupation = occupation
         self.pos = pos
         self.entityManager = entityManager
@@ -14,13 +14,16 @@ class Entity:
         self.ID = ID
         self.variables = {}
         self.route = []
-        self.speed = 0.0001  # lower value is faster, 1 is normal speed
         self.destinationDistance = 0
         self.destination = []  # [0] is (x, y), [1] is location_type
         self.isWorking = False
+        # entity variables from json
+        self.entityVariables = entityVariables
+        self.speed = entityVariables["speed"]  # lower value is faster, 1 is normal speed
 
     def __lt__(self, other):
-        if self.occupation == "discoverer" and len(self.variables["nextFogNode"]) is not None:  # goal is variables["newFogNode"]
+        if self.occupation == "discoverer" and len(self.variables["nextFogNode"]) is not None:
+            # goal is variables["newFogNode"]
             # if Algorithms.heuristic(self.variables["nextFogNode"], self.pos) < \
             #         Algorithms.heuristic(other.variables["nextFogNode"], other.pos):
             return True
@@ -72,11 +75,13 @@ class Entity:
             self.entityManager.discoverers.append(self)
             self.entityManager.isUpgrading.remove(self)
             self.entityManager.workers.remove(self)
-            if self.variables["item"] is not None:
-                self.entityManager.worldManager.gatheredTreesAvailable -= 1
+            # irrelevant now when builders have their own list of trees available:
+            # if self.variables["item"] is not None:
+            #     self.entityManager.worldManager.gatheredTreesAvailable -= 1
             self.variables.popitem()
             self.variables["nextFogNode"] = None
-            if len(self.entityManager.discoverers) >= 20:
+            self.variables["hasMoved"] = True
+            if len(self.entityManager.discoverers) >= self.entityManager.worldManager.maxDiscovererAmount:
                 self.entityManager.worldManager.needDiscoverers = False
 
             # release tree
@@ -257,70 +262,71 @@ class Entity:
                 else:
                     self.variables["item"] = self.entityManager.worldManager.trees[self.pos]
                     self.entityManager.worldManager.trees.pop(self.pos, telegram.extraInfo)
-                # add new tree
-                self.entityManager.worldManager.graph.freeGroundNodes.append(self.pos)
-                newTree = self.entityManager.worldManager.addNewTree()
-                if newTree.pos in self.entityManager.worldManager.graph.freeGroundNodes:
-                    self.entityManager.worldManager.graph.freeGroundNodes.remove(newTree.pos)
+                    # add new tree
+                    self.entityManager.worldManager.graph.freeGroundNodes.append(self.pos)
+                    newTree = self.entityManager.worldManager.addNewTree()
+                    if newTree.pos in self.entityManager.worldManager.graph.freeGroundNodes:
+                        self.entityManager.worldManager.graph.freeGroundNodes.remove(newTree.pos)
 
-                # if newTree.pos not in self.entityManager.worldManager.graph.fogNodes:
-                #     for entity in self.entityManager.workers:
-                #         if entity not in self.entityManager.isUpgrading:
-                #             self.entityManager.worldManager.messageDispatcher.dispatchMessage \
-                #                 (entity, self, Enumerations.message_type.treeAppeared, 0, newTree.pos)
+                    # if newTree.pos not in self.entityManager.worldManager.graph.fogNodes:
+                    #     for entity in self.entityManager.workers:
+                    #         if entity not in self.entityManager.isUpgrading:
+                    #             self.entityManager.worldManager.messageDispatcher.dispatchMessage \
+                    #                 (entity, self, Enumerations.message_type.treeAppeared, 0, newTree.pos)
 
-                # not sure why I have this as an entity field but it's reset here every time so whatever
-                self.destinationDistance = 1000000
-                while len(self.destination) > 0:
-                    self.destination.pop(0)
-                self.destination.append(self.pos)
-                self.destination.append(None)
+                    # not sure why I have this as an entity field but it's reset here every time so whatever
+                    self.destinationDistance = 1000000
+                    while len(self.destination) > 0:
+                        self.destination.pop(0)
+                    self.destination.append(self.pos)
+                    self.destination.append(None)
 
-                # find builder who needs trees
-                if self.entityManager.worldManager.needKiln:
-                    for builder in self.entityManager.builders:
-                        # if builder needs trees, set destination
-                        if not builder.isWorking and len(builder.variables["items"]) < 1:
-                            # set destination to this builder, break
-                            self.destination[0] = builder.pos
-                            self.destination[1] = Enumerations.location_type.builder
-                            break
+                    # find builder who needs trees
+                    if self.entityManager.worldManager.needKiln:
+                        for builder in self.entityManager.builders:
+                            # if builder needs trees, set destination
+                            if not builder.isWorking and len(builder.variables["items"]) < \
+                                    builder.entityVariables["treesPerBuilding"]:
+                                # set destination to this builder, break
+                                self.destination[0] = builder.pos
+                                self.destination[1] = Enumerations.location_type.builder
+                                break
 
-                            # decide spot to build for this builder
-                            # NOTE: only works if worldManager only has one builder
-                            # while len(builder.destination) > 0:
-                            #     builder.destination.pop(0)
-                            # for spot in self.entityManager.worldManager.buildingSpots:
-                            #     if spot not in self.entityManager.worldManager.buildings and \
-                            #             spot not in self.entityManager.worldManager.graph.fogNodes:
-                            #         builder.destination.append(spot)
-                            #         builder.destination.append(Enumerations.location_type.kiln)
-                            #     # if kiln not found, do nothing
-                            # if len(builder.destination) > 0:
-                            #     builder.stateMachine.changeState(States.States.build)
-                                # for kilnManager in self.entityManager.kilnManagers:  # do this in buildingIsDone
-                                #     if not kilnManager.isWorking:
-                                #         kilnManager.destination.append(builder.destination[0])
-                                #         kilnManager.destination.append(Enumerations.location_type.kiln)
-                                #         kilnManager.stateMachine.changeState(States.States.manageKiln)
-                                #         break
+                                # decide spot to build for this builder
+                                # NOTE: only works if worldManager only has one builder
+                                # while len(builder.destination) > 0:
+                                #     builder.destination.pop(0)
+                                # for spot in self.entityManager.worldManager.buildingSpots:
+                                #     if spot not in self.entityManager.worldManager.buildings and \
+                                #             spot not in self.entityManager.worldManager.graph.fogNodes:
+                                #         builder.destination.append(spot)
+                                #         builder.destination.append(Enumerations.location_type.kiln)
+                                #     # if kiln not found, do nothing
+                                # if len(builder.destination) > 0:
+                                #     builder.stateMachine.changeState(States.States.build)
+                                    # for kilnManager in self.entityManager.kilnManagers:  # do this in buildingIsDone
+                                    #     if not kilnManager.isWorking:
+                                    #         kilnManager.destination.append(builder.destination[0])
+                                    #         kilnManager.destination.append(Enumerations.location_type.kiln)
+                                    #         kilnManager.stateMachine.changeState(States.States.manageKiln)
+                                    #         break
 
-                else:  # find nearest kilnManager
-                    for kilnManager in self.entityManager.kilnManagers:
-                        newDistance = Algorithms.heuristic(kilnManager.pos, self.pos)
-                        if newDistance < self.destinationDistance and \
-                                kilnManager.pos in self.entityManager.worldManager.buildings:
-                            self.destinationDistance = newDistance
-                            self.destination[0] = kilnManager.pos
-                            self.destination[1] = Enumerations.location_type.kiln
+                    else:  # find nearest kilnManager
+                        for kilnManager in self.entityManager.kilnManagers:
+                            newDistance = Algorithms.heuristic(kilnManager.pos, self.pos)
+                            if newDistance < self.destinationDistance and \
+                                    kilnManager.pos in self.entityManager.worldManager.buildings:
+                                self.destinationDistance = newDistance
+                                self.destination[0] = kilnManager.pos
+                                self.destination[1] = Enumerations.location_type.kiln
 
-                # start carrying tree if destination is found
-                if self.destination[1] is not None:
-                    self.stateMachine.changeState(States.States.carryTree)
-                else:
-                    self.destination.pop(0)
-                    self.destination.pop(0)
-                    self.stateMachine.changeState(States.States.idle)
+                    # start carrying tree if destination is found
+                    if self.destination[1] is not None:
+                        self.stateMachine.changeState(States.States.carryTree)
+                    else:
+                        self.destination.pop(0)
+                        self.destination.pop(0)
+                        self.stateMachine.changeState(States.States.idle)
 
         elif telegram.msg == Enumerations.message_type.isUpgradedBuilder:
             self.occupation = "builder"
@@ -338,6 +344,14 @@ class Entity:
             while len(self.destination) > 0:
                 self.destination.pop(0)
 
+            for worker in self.entityManager.workers:
+                if worker.variables["item"] is not None and \
+                        worker.stateMachine.currentState is not States.States.carryTree and \
+                        worker.stateMachine.currentState is not States.States.chopTree and \
+                        len(worker.destination) <= 0:
+                    self.entityManager.worldManager.messageDispatcher.dispatchMessage \
+                        (worker, self, Enumerations.message_type.giveMeTrees, 0, None)
+
             self.stateMachine.changeState(States.States.idle)
 
         elif telegram.msg == Enumerations.message_type.buildingIsDone:
@@ -346,7 +360,7 @@ class Entity:
 
             self.isWorking = False
             self.variables["isBuilding"] = False
-            for treesRequired in range(1):
+            for index in range(self.entityVariables["treesPerBuilding"]):
                 # remove first inserted tree from items
                 self.variables["items"].pop(0)
 
@@ -420,8 +434,9 @@ class Entity:
                 self.stateMachine.changeState(States.States.idle)
 
         elif telegram.msg == Enumerations.message_type.charcoalIsDone:
-            self.entityManager.worldManager.charcoal += 1
-            self.variables["items"].pop(0)
+            self.entityManager.worldManager.charcoal += self.entityVariables["charcoalPerProcess"]
+            for index in range(self.entityVariables["treesPerCharcoal"]):
+                self.variables["items"].pop(0)
 
             if self.entityManager.worldManager.charcoal >= self.entityManager.worldManager.charcoalGoal:
                 print(self.entityManager.worldManager.charcoal, "charcoal has been made! :D Betyg 3 är nått!")
@@ -443,7 +458,7 @@ class Entity:
             telegram.sender.variables["item"] = None
             if self.occupation == "builder":
                 # if builder has enough trees, start building
-                if len(self.variables["items"]) >= 1:
+                if len(self.variables["items"]) >= self.entityVariables["treesPerBuilding"]:
                     self.entityManager.worldManager.needKilnManager = True
 
                     # set destination to freeGroundNode
@@ -469,16 +484,23 @@ class Entity:
                     else:  # if destination not found, set to idle
                         self.stateMachine.changeState(States.States.idle)
 
+            # NOTE: might need backslashes
             elif self.occupation == "kilnManager":  # make more kilns if this kilnManager has enough trees
-                if (len(self.variables["items"]) > (1 + 1) and self.variables["isMakingCharcoal"]) or \
-                        (len(self.variables["items"]) > 1 and not self.variables["isMakingCharcoal"]):
+                if (len(self.variables["items"]) >
+                        (self.entityVariables["treesPerCharcoal"] + self.entityVariables["treesPerCharcoal"]) and
+                        self.variables["isMakingCharcoal"]) or \
+                        (len(self.variables["items"]) > self.entityVariables["treesPerCharcoal"] and
+                         not self.variables["isMakingCharcoal"]):
                     self.entityManager.worldManager.needKiln = True
 
         elif telegram.msg == Enumerations.message_type.giveMeTrees:
             while len(self.destination) > 0:
                 self.destination.pop(0)
             self.destination.append(telegram.sender.pos)
-            self.destination.append(Enumerations.location_type.kiln)
+            if telegram.sender.occupation == "kilnManager":
+                self.destination.append(Enumerations.location_type.kiln)
+            else:
+                self.destination.append(Enumerations.location_type.builder)
             self.stateMachine.changeState(States.States.carryTree)
 
     def move(self, nextNode, graph):
@@ -490,31 +512,39 @@ class Entity:
             for node in diagonal:
                 if (self.pos[0] + node[0], self.pos[1] + node[1]) == nextNode:
                     self.entityManager.worldManager.messageDispatcher.dispatchMessage \
-                        (self, self, Enumerations.message_type.move, 14 * self.speed, nextNode)
+                        (self, self, Enumerations.message_type.move,
+                         (self.entityManager.worldManager.moveVariables["groundDiagonal"] * 2) * self.speed, nextNode)
                     nextNodeInDiagonal = True
             if not nextNodeInDiagonal:
                 self.entityManager.worldManager.messageDispatcher.dispatchMessage \
-                    (self, self, Enumerations.message_type.move, 10 * self.speed, nextNode)
+                    (self, self, Enumerations.message_type.move,
+                     (self.entityManager.worldManager.moveVariables["groundStraight"] * 2) * self.speed, nextNode)
 
         elif (self.pos in graph.groundNodes and nextNode in graph.swampNodes) or \
                 (self.pos in graph.swampNodes and nextNode in graph.groundNodes):
             for node in diagonal:
                 if (self.pos[0] + node[0], self.pos[1] + node[1]) == nextNode:
                     self.entityManager.worldManager.messageDispatcher.dispatchMessage \
-                        (self, self, Enumerations.message_type.move, 21 * self.speed, nextNode)
+                        (self, self, Enumerations.message_type.move,
+                         (self.entityManager.worldManager.moveVariables["swampDiagonal"] +
+                          self.entityManager.worldManager.moveVariables["groundDiagonal"]) * self.speed, nextNode)
                     nextNodeInDiagonal = True
             if not nextNodeInDiagonal:
                 self.entityManager.worldManager.messageDispatcher.dispatchMessage \
-                    (self, self, Enumerations.message_type.move, 15 * self.speed, nextNode)
+                    (self, self, Enumerations.message_type.move,
+                     (self.entityManager.worldManager.moveVariables["swampStraight"] +
+                      self.entityManager.worldManager.moveVariables["groundStraight"]) * self.speed, nextNode)
 
         elif self.pos in graph.swampNodes and nextNode in graph.swampNodes:
             for node in diagonal:
                 if (self.pos[0] + node[0], self.pos[1] + node[1]) == nextNode:
                     self.entityManager.worldManager.messageDispatcher.dispatchMessage \
-                        (self, self, Enumerations.message_type.move, 28 * self.speed, nextNode)
+                        (self, self, Enumerations.message_type.move,
+                         (self.entityManager.worldManager.moveVariables["swampDiagonal"] * 2) * self.speed, nextNode)
                     nextNodeInDiagonal = True
             if not nextNodeInDiagonal:
                 self.entityManager.worldManager.messageDispatcher.dispatchMessage \
-                    (self, self, Enumerations.message_type.move, 20 * self.speed, nextNode)
+                    (self, self, Enumerations.message_type.move,
+                     (self.entityManager.worldManager.moveVariables["swampStraight"] * 2) * self.speed, nextNode)
 
         self.stateMachine.changeState(States.States.idle)

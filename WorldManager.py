@@ -28,8 +28,12 @@ class WorldManager:
         self.buildingSpots = []
         for spot in variables["buildingSpots"]:
             self.buildingSpots.append(tuple(spot))
+        self.closeDistanceTreeFromWorker = variables["closeDistanceTreeFromWorker"]
         self.maxDistanceTreeFromWorker = variables["maxDistanceTreeFromWorker"]
         self.workerPathsPerDiscoverer = variables["workerPathsPerDiscoverer"]
+        self.maxDiscovererAmount = variables["maxDiscovererAmount"]
+
+        self.moveVariables = moveVariables
 
         # path finding
         self.pathsToFind = []
@@ -76,15 +80,26 @@ class WorldManager:
                     break
         if self.needKiln:
             for builder in self.entityManager.builders:
-                if not builder.isWorking and len(builder.variables["items"]) >= 1:
+                if not builder.isWorking and len(builder.variables["items"]) >= \
+                        builder.entityVariables["treesPerBuilding"]:
+                    # set destination to freeGroundNode
+                    while len(self.destination) > 0:
+                        self.destination.pop(0)
+                    self.destination.append(random.choice(self.entityManager.worldManager.graph.freeGroundNodes))
+                    if self.destination[0] in self.entityManager.worldManager.graph.freeGroundNodes:
+                        self.entityManager.worldManager.graph.freeGroundNodes.remove(self.destination[0])
+                        self.destination.append(Enumerations.location_type.kiln)  # add it's location if found
+                    else:  # if not found, make destination empty again
+                        while len(self.destination) > 0:
+                            self.destination.pop(0)
                     # look for free buildingSpot not in fogNode
-                    while len(builder.destination) > 0:
-                        builder.destination.pop(0)
-                    for spot in self.buildingSpots:
-                        if spot not in self.buildings and spot not in self.graph.fogNodes:
-                            builder.destination.append(spot)
-                            builder.destination.append(Enumerations.location_type.kiln)
-                            break
+                    # while len(builder.destination) > 0:
+                    #     builder.destination.pop(0)
+                    # for spot in self.buildingSpots:
+                    #     if spot not in self.buildings and spot not in self.graph.fogNodes:
+                    #         builder.destination.append(spot)
+                    #         builder.destination.append(Enumerations.location_type.kiln)
+                    #         break
 
                     if len(builder.destination) > 0:  # if kiln found, start building
                         self.needKiln = False
@@ -96,30 +111,55 @@ class WorldManager:
         for tree in self.trees:
             if self.trees[tree].owner is None and tree not in self.graph.fogNodes:
 
-                # if heuristic <= 72, break. A close worker has been found.
+                # if heuristic <= self.maxDistanceTreeFromWorker, break. A close worker has been found.
                 shortestDistance = 100000000000000000000
                 closestWorker = None
-                for worker in self.entityManager.workers:
-                    newDistance = Algorithms.heuristic(tree, worker.pos)
-                    if not worker.isWorking and newDistance <= 100 and worker not in self.entityManager.isUpgrading:
-                        while len(worker.destination) > 0:
-                            worker.destination.pop(0)
-                        worker.destination.append(tree)
-                        worker.destination.append(Enumerations.location_type.tree)
-                        self.trees[tree].owner = worker
-                        worker.stateMachine.changeState(self.states.chopTree)
-                        break
-                    elif not worker.isWorking and newDistance < shortestDistance:
-                        shortestDistance = newDistance
-                        closestWorker = worker
-                # if closest found worker is further away than 72, set it to owner
-                if closestWorker is not None:
+                if not self.trees[tree].searchFurtherAway:
+                    for worker in self.entityManager.workers:
+                        newDistance = Algorithms.heuristic(tree, worker.pos)
+                        if not worker.isWorking and newDistance <= self.closeDistanceTreeFromWorker and \
+                                worker not in self.entityManager.isUpgrading:
+                            while len(worker.destination) > 0:
+                                worker.destination.pop(0)
+                            worker.destination.append(tree)
+                            worker.destination.append(Enumerations.location_type.tree)
+                            self.trees[tree].owner = worker
+                            worker.stateMachine.changeState(self.states.chopTree)
+                            closestWorker = worker
+                            break
+                        elif not worker.isWorking and newDistance < shortestDistance and \
+                                worker not in self.entityManager.isUpgrading:
+                            shortestDistance = newDistance
+                            # closestWorker = worker  # första sökningen ska inte ge closestWorker ett objekt här
+                else:  # search further away
+                    self.trees[tree].searchFurtherAway = False
+                    for worker in self.entityManager.workers:
+                        newDistance = Algorithms.heuristic(tree, worker.pos)
+                        if not worker.isWorking and newDistance <= self.maxDistanceTreeFromWorker and \
+                                worker not in self.entityManager.isUpgrading:
+                            while len(worker.destination) > 0:
+                                worker.destination.pop(0)
+                            worker.destination.append(tree)
+                            worker.destination.append(Enumerations.location_type.tree)
+                            self.trees[tree].owner = worker
+                            worker.stateMachine.changeState(self.states.chopTree)
+                            closestWorker = worker
+                            break
+                        elif not worker.isWorking and newDistance < shortestDistance and \
+                                worker not in self.entityManager.isUpgrading:
+                            shortestDistance = newDistance
+                            closestWorker = worker
+
+                # if closest found worker is further away than self.maxDistanceTreeFromWorker, set it to owner
+                if closestWorker is not None:  # if found after all searches above
                     while len(closestWorker.destination) > 0:
                         closestWorker.destination.pop(0)
                     closestWorker.destination.append(tree)
                     closestWorker.destination.append(Enumerations.location_type.tree)
                     self.trees[tree].owner = closestWorker
                     closestWorker.stateMachine.changeState(self.states.chopTree)
+                else:
+                    self.trees[tree].searchFurtherAway = True
 
         self.AStarHasOccurred = False
         self.entityManager.update()
@@ -175,7 +215,7 @@ class WorldManager:
                 self.craftsmanAStarPath = self.craftsmanPath
                 self.craftsmanAStarCostSoFar = self.craftsmanCostSoFar
 
-            while self.iterationsSoFar <= self.iterationsPerUpdate:
+            while self.iterationsSoFar <= self.pathIterationsPerUpdate:
                 if len(self.craftsmanAStarPriorityQ) == 0:
                     self.craftsmanPathsToFind[0][1][0].route = [(0, 0)]
                     self.craftsmanAStarPriorityQ.clear()
@@ -205,7 +245,8 @@ class WorldManager:
                     if self.craftsmanAStarPath[self.craftsmanPathsToFind[0][1][2]] is not None:
                         print("will get an error :((")
                     self.craftsmanPathsToFind[0][1][0].route = Algorithms.getRoute \
-                        (self.craftsmanPathsToFind[0][1][2], self.craftsmanPathsToFind[0][1][3], self.craftsmanAStarPath)
+                        (self.craftsmanPathsToFind[0][1][2], self.craftsmanPathsToFind[0][1][3],
+                         self.craftsmanAStarPath)
                     self.craftsmanAStarPriorityQ.clear()
                     self.craftsmanAStarPath.clear()
                     self.craftsmanAStarCostSoFar.clear()
@@ -231,7 +272,7 @@ class WorldManager:
                     if neighbour not in self.craftsmanPathsToFind[0][1][1].fogNodes:
                         newCost = self.craftsmanAStarCostSoFar[currentNode] + \
                                   Algorithms.tileDependentHeuristic \
-                                      (self.craftsmanPathsToFind[0][1][1], neighbour, currentNode)
+                                      (self.craftsmanPathsToFind[0][1][1], neighbour, currentNode, self.moveVariables)
                         if (tuple(neighbour) not in self.craftsmanAStarCostSoFar) or \
                                 (newCost < self.craftsmanAStarCostSoFar[tuple(neighbour)]):
                             self.craftsmanAStarCostSoFar[tuple(neighbour)] = newCost
@@ -239,6 +280,7 @@ class WorldManager:
                             self.craftsmanAStarPath[tuple(neighbour)] = currentNode
                             heapq.heappush(self.craftsmanAStarPriorityQ, (priority, tuple(neighbour)))
                     else:  # if neighbour is in a fogNode, plz don't choose this node I beg you :((
+                        # this part can be removed since neighboursExceptFog works now
                         newCost = self.craftsmanAStarCostSoFar[currentNode] + 10000000000000000000000000000000000
                         if (tuple(neighbour) not in self.craftsmanAStarCostSoFar) or \
                                 (newCost < self.craftsmanAStarCostSoFar[tuple(neighbour)]):
@@ -252,7 +294,7 @@ class WorldManager:
             self.craftsmanPath = self.craftsmanAStarPath
             self.craftsmanCostSoFar = self.craftsmanAStarCostSoFar
 
-        elif len(self.pathsToFind) > 0 and self.pathsFoundForWorkers <= self.pathIterationsPerUpdate:
+        elif len(self.pathsToFind) > 0 and self.pathsFoundForWorkers <= self.workerPathsPerDiscoverer:
             # 0:entity, 1:graph, 2:start, 3:goal
 
             # if self.pathsToFind[0][1][0].occupation == "discoverer":
@@ -350,14 +392,14 @@ class WorldManager:
                 self.AStarPath = self.path
                 self.AStarCostSoFar = self.costSoFar
 
-            while self.iterationsSoFar <= self.iterationsPerUpdate:
+            while self.iterationsSoFar <= self.pathIterationsPerUpdate:
                 if len(self.AStarPriorityQ) == 0:
                     self.pathsToFind[0][1][0].route = [(0, 0)]
                     self.AStarPriorityQ.clear()
                     self.AStarPath.clear()
                     self.AStarCostSoFar.clear()
                     heapq.heappop(self.pathsToFind)[1]
-                    if self.pathsFoundForWorkers > self.pathIterationsPerUpdate:
+                    if self.pathsFoundForWorkers > self.workerPathsPerDiscoverer:
                         self.pathsFoundForWorkers = 0
                     else:
                         self.pathsFoundForWorkers += 1
@@ -392,7 +434,7 @@ class WorldManager:
                     self.path.clear()
                     self.costSoFar.clear()
                     heapq.heappop(self.pathsToFind)[1]
-                    if self.pathsFoundForWorkers > self.pathIterationsPerUpdate:
+                    if self.pathsFoundForWorkers > self.workerPathsPerDiscoverer:
                         self.pathsFoundForWorkers = 0
                     else:
                         self.pathsFoundForWorkers += 1
@@ -414,7 +456,7 @@ class WorldManager:
                     if neighbour not in self.pathsToFind[0][1][1].fogNodes:
                         newCost = self.AStarCostSoFar[currentNode] + \
                                   Algorithms.tileDependentHeuristic \
-                                      (self.pathsToFind[0][1][1], neighbour, currentNode)
+                                      (self.pathsToFind[0][1][1], neighbour, currentNode, self.moveVariables)
                         if (tuple(neighbour) not in self.AStarCostSoFar) or \
                                 (newCost < self.AStarCostSoFar[tuple(neighbour)]):
                             self.AStarCostSoFar[tuple(neighbour)] = newCost
@@ -422,6 +464,7 @@ class WorldManager:
                             self.AStarPath[tuple(neighbour)] = currentNode
                             heapq.heappush(self.AStarPriorityQ, (priority, tuple(neighbour)))
                     else:  # if neighbour is in a fogNode, plz don't choose this node I beg you :((
+                        # this part can be removed since neighboursExceptFog works now
                         newCost = self.AStarCostSoFar[currentNode] + 10000000000000000000000000000000000
                         if (tuple(neighbour) not in self.AStarCostSoFar) or \
                                 (newCost < self.AStarCostSoFar[tuple(neighbour)]):
@@ -436,83 +479,104 @@ class WorldManager:
             self.costSoFar = self.AStarCostSoFar
 
         elif len(self.discoverPathsToFind) > 0:
-            self.pathsFoundForWorkers = 0
-            if len(self.discoverPriorityQ) == 0:  # new entity
+            # if goal is not in fogNodes, set discoverer's nextFogNode to None and remove this discovererPathToFind
+            if self.discoverPathsToFind[0][1][3] not in self.graph.fogNodes:
+                self.discoverPathsToFind[0][1][0].variables["nextFogNode"] = None
+                if self.discoverPathsToFind[0][1][3] in self.graph.occupiedNodes:
+                    self.graph.occupiedNodes.remove(self.discoverPathsToFind[0][1][3])
+                for neighbour in self.graph.neighbours(self.discoverPathsToFind[0][1][3]):
+                    if neighbour in self.graph.occupiedNodes:
+                        self.graph.occupiedNodes.remove(neighbour)
                 self.discoverAStarPriorityQ.clear()
-                heapq.heappush(self.discoverAStarPriorityQ, (0, tuple(self.discoverPathsToFind[0][1][2])))
-                self.discoverAStarPath[tuple(self.discoverPathsToFind[0][1][2])] = None
-                self.discoverAStarCostSoFar[tuple(self.discoverPathsToFind[0][1][2])] = 0
-            else:  # set A* variables to progress values
-                self.discoverAStarPriorityQ = self.discoverPriorityQ
-                self.discoverAStarPath = self.discoverPath
-                self.discoverAStarCostSoFar = self.discoverCostSoFar
+                self.discoverAStarPath.clear()
+                self.discoverAStarCostSoFar.clear()
+                self.discoverPriorityQ.clear()
+                self.discoverPath.clear()
+                self.discoverCostSoFar.clear()
+                heapq.heappop(self.discoverPathsToFind)[1]
+                if len(self.discoverPathsToFind) > 0:
+                    self.doPathFinding()
+                self.iterationsSoFar = 0
 
-            while self.iterationsSoFar <= self.iterationsPerUpdate:
-                if len(self.discoverAStarPriorityQ) == 0:  # return an invalid tuple if no path found
-                    self.discoverPathsToFind[0][1][0].route = [(0, 0)]
+            else:
+                if len(self.discoverPriorityQ) == 0:  # new entity
                     self.discoverAStarPriorityQ.clear()
-                    self.discoverAStarPath.clear()
-                    self.discoverAStarCostSoFar.clear()
-                    heapq.heappop(self.discoverPathsToFind)[1]
-                    if len(self.discoverPathsToFind) > 0:
-                        # if a non discoverer has a shorter path than discoverer in front, set it to front, break
-                        # set a non discoverer to the front if there is one
-                        # heapq.heapify(self.discoverPathsToFind)
-                        # if self.discoverPathsToFind[0][1][0].occupation == "discoverer":
-                        #     for path in self.discoverPathsToFind:
-                        #         if path[1][0].occupation != "discoverer":
-                        #             while self.discoverPathsToFind[0][1][0].occupation == "discoverer":
-                        #                 oldPath = heapq.heappop(self.discoverPathsToFind)
-                        #                 heapq.heappush(self.discoverPathsToFind, oldPath)
-                        #                 # self.pathsToFind.append(oldPath)
-                        #             break
+                    heapq.heappush(self.discoverAStarPriorityQ, (0, tuple(self.discoverPathsToFind[0][1][2])))
+                    self.discoverAStarPath[tuple(self.discoverPathsToFind[0][1][2])] = None
+                    self.discoverAStarCostSoFar[tuple(self.discoverPathsToFind[0][1][2])] = 0
+                else:  # set A* variables to progress values
+                    self.discoverAStarPriorityQ = self.discoverPriorityQ
+                    self.discoverAStarPath = self.discoverPath
+                    self.discoverAStarCostSoFar = self.discoverCostSoFar
 
-                        # for path in paths, check if path
-                        self.doPathFinding()
-                    break
+                while self.iterationsSoFar <= self.pathIterationsPerUpdate:
+                    if len(self.discoverAStarPriorityQ) == 0:  # return an invalid tuple if no path found
+                        self.discoverPathsToFind[0][1][0].route = [(0, 0)]
+                        self.discoverAStarPriorityQ.clear()
+                        self.discoverAStarPath.clear()
+                        self.discoverAStarCostSoFar.clear()
+                        heapq.heappop(self.discoverPathsToFind)[1]
+                        self.pathsFoundForWorkers = 0
+                        if len(self.discoverPathsToFind) > 0:
+                            # if a non discoverer has a shorter path than discoverer in front, set it to front, break
+                            # set a non discoverer to the front if there is one
+                            # heapq.heapify(self.discoverPathsToFind)
+                            # if self.discoverPathsToFind[0][1][0].occupation == "discoverer":
+                            #     for path in self.discoverPathsToFind:
+                            #         if path[1][0].occupation != "discoverer":
+                            #             while self.discoverPathsToFind[0][1][0].occupation == "discoverer":
+                            #                 oldPath = heapq.heappop(self.discoverPathsToFind)
+                            #                 heapq.heappush(self.discoverPathsToFind, oldPath)
+                            #                 # self.pathsToFind.append(oldPath)
+                            #             break
 
-                currentNode = heapq.heappop(self.discoverAStarPriorityQ)[1]
+                            # for path in paths, check if path
+                            self.doPathFinding()
+                        break
 
-                if currentNode == tuple(self.discoverPathsToFind[0][1][3]):
-                    if self.discoverAStarPath[self.discoverPathsToFind[0][1][2]] is not None:
-                        print("will get an error :((")
-                    self.discoverPathsToFind[0][1][0].route = Algorithms.getRoute \
-                        (self.discoverPathsToFind[0][1][2], self.discoverPathsToFind[0][1][3], self.discoverAStarPath)
-                    self.discoverAStarPriorityQ.clear()
-                    self.discoverAStarPath.clear()
-                    self.discoverAStarCostSoFar.clear()
-                    self.discoverPriorityQ.clear()
-                    self.discoverPath.clear()
-                    self.discoverCostSoFar.clear()
-                    heapq.heappop(self.discoverPathsToFind)[1]
-                    if len(self.discoverPathsToFind) > 0:
-                        # heapq.heapify(self.discoverPathsToFind)
-                        # if self.discoverPathsToFind[0][1][0].occupation == "discoverer":
-                        #     for path in self.discoverPathsToFind:
-                        #         if path[1][0].occupation != "discoverer":
-                        #             while self.discoverPathsToFind[0][1][0].occupation == "discoverer":
-                        #                 oldPath = heapq.heappop(self.discoverPathsToFind)
-                        #                 heapq.heappush(self.discoverPathsToFind, oldPath)
-                        #                 # self.pathsToFind.append(oldPath)
-                        #             break
+                    currentNode = heapq.heappop(self.discoverAStarPriorityQ)[1]
 
-                        self.doPathFinding()
-                    break
+                    if currentNode == tuple(self.discoverPathsToFind[0][1][3]):
+                        if self.discoverAStarPath[self.discoverPathsToFind[0][1][2]] is not None:
+                            print("will get an error :((")
+                        self.discoverPathsToFind[0][1][0].route = Algorithms.getRoute \
+                            (self.discoverPathsToFind[0][1][2], self.discoverPathsToFind[0][1][3], self.discoverAStarPath)
+                        self.discoverAStarPriorityQ.clear()
+                        self.discoverAStarPath.clear()
+                        self.discoverAStarCostSoFar.clear()
+                        self.discoverPriorityQ.clear()
+                        self.discoverPath.clear()
+                        self.discoverCostSoFar.clear()
+                        heapq.heappop(self.discoverPathsToFind)[1]
+                        self.pathsFoundForWorkers = 0
+                        if len(self.discoverPathsToFind) > 0:
+                            # heapq.heapify(self.discoverPathsToFind)
+                            # if self.discoverPathsToFind[0][1][0].occupation == "discoverer":
+                            #     for path in self.discoverPathsToFind:
+                            #         if path[1][0].occupation != "discoverer":
+                            #             while self.discoverPathsToFind[0][1][0].occupation == "discoverer":
+                            #                 oldPath = heapq.heappop(self.discoverPathsToFind)
+                            #                 heapq.heappush(self.discoverPathsToFind, oldPath)
+                            #                 # self.pathsToFind.append(oldPath)
+                            #             break
 
-                for neighbour in self.discoverPathsToFind[0][1][1].neighbours(currentNode):
-                    newCost = self.discoverAStarCostSoFar[currentNode] + \
-                              Algorithms.tileDependentHeuristic\
-                                  (self.discoverPathsToFind[0][1][1], neighbour, currentNode)
-                    if (tuple(neighbour) not in self.discoverAStarCostSoFar) or \
-                            (newCost < self.discoverAStarCostSoFar[tuple(neighbour)]):
-                        self.discoverAStarCostSoFar[tuple(neighbour)] = newCost
-                        priority = newCost + Algorithms.heuristic(self.discoverPathsToFind[0][1][3], neighbour)
-                        self.discoverAStarPath[tuple(neighbour)] = currentNode
-                        heapq.heappush(self.discoverAStarPriorityQ, (priority, tuple(neighbour)))
+                            self.doPathFinding()
+                        break
 
-                self.iterationsSoFar += 1
+                    for neighbour in self.discoverPathsToFind[0][1][1].neighbours(currentNode):
+                        newCost = self.discoverAStarCostSoFar[currentNode] + \
+                                  Algorithms.tileDependentHeuristic \
+                                      (self.discoverPathsToFind[0][1][1], neighbour, currentNode, self.moveVariables)
+                        if (tuple(neighbour) not in self.discoverAStarCostSoFar) or \
+                                (newCost < self.discoverAStarCostSoFar[tuple(neighbour)]):
+                            self.discoverAStarCostSoFar[tuple(neighbour)] = newCost
+                            priority = newCost + Algorithms.heuristic(self.discoverPathsToFind[0][1][3], neighbour)
+                            self.discoverAStarPath[tuple(neighbour)] = currentNode
+                            heapq.heappush(self.discoverAStarPriorityQ, (priority, tuple(neighbour)))
 
-            self.iterationsSoFar = 0
-            self.discoverPriorityQ = self.discoverAStarPriorityQ
-            self.discoverPath = self.discoverAStarPath
-            self.discoverCostSoFar = self.discoverAStarCostSoFar
+                    self.iterationsSoFar += 1
+
+                self.iterationsSoFar = 0
+                self.discoverPriorityQ = self.discoverAStarPriorityQ
+                self.discoverPath = self.discoverAStarPath
+                self.discoverCostSoFar = self.discoverAStarCostSoFar
