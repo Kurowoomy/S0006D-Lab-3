@@ -342,7 +342,7 @@ class Entity:
 
         elif telegram.msg == Enumerations.message_type.buildingIsDone:
             self.entityManager.worldManager.buildings[self.pos] = Objects.Kiln(self.pos)
-            self.entityManager.worldManager.graph.freeGroundNodes.remove(self.pos)
+            # self.entityManager.worldManager.graph.freeGroundNodes.remove(self.pos)
 
             self.isWorking = False
             self.variables["isBuilding"] = False
@@ -402,7 +402,8 @@ class Entity:
             # I remember seeing similar behaviour on a kilnManager sometimes before and this is most likely why
             # self.entityManager.worldManager.removeAllMessagesOf(Enumerations.message_type.move, self)
 
-            self.route.clear()  # NOTE: mysterious reset, might not be safe
+            if len(self.route) > 0:
+                self.route.clear()  # NOTE: mysterious reset, might not be safe
             while len(self.destination) > 0:
                 self.destination.pop(0)
 
@@ -422,8 +423,8 @@ class Entity:
             self.entityManager.worldManager.charcoal += 1
             self.variables["items"].pop(0)
 
-            if self.entityManager.worldManager.charcoal >= 200:
-                print("200 charcoal has been made! :D Betyg 3 är nått!")
+            if self.entityManager.worldManager.charcoal >= self.entityManager.worldManager.charcoalGoal:
+                print(self.entityManager.worldManager.charcoal, "charcoal has been made! :D Betyg 3 är nått!")
             else:
                 for worker in self.entityManager.workers:
                     if worker.variables["item"] is not None and \
@@ -445,15 +446,22 @@ class Entity:
                 if len(self.variables["items"]) >= 1:
                     self.entityManager.worldManager.needKilnManager = True
 
-                    # set destination to free buildingSpot
+                    # set destination to freeGroundNode
                     while len(self.destination) > 0:
                         self.destination.pop(0)
-                    for spot in self.entityManager.worldManager.buildingSpots:
-                        if spot not in self.entityManager.worldManager.buildings and \
-                                spot not in self.entityManager.worldManager.graph.fogNodes:
-                            self.destination.append(spot)
-                            self.destination.append(Enumerations.location_type.kiln)
-                            break
+                    self.destination.append(random.choice(self.entityManager.worldManager.graph.freeGroundNodes))
+                    if self.destination[0] in self.entityManager.worldManager.graph.freeGroundNodes:
+                        self.entityManager.worldManager.graph.freeGroundNodes.remove(self.destination[0])
+                        self.destination.append(Enumerations.location_type.kiln)  # add it's location if found
+                    else:  # if not found, make destination empty again
+                        while len(self.destination) > 0:
+                            self.destination.pop(0)
+                    # for spot in self.entityManager.worldManager.buildingSpots:
+                    #     if spot not in self.entityManager.worldManager.buildings and \
+                    #             spot not in self.entityManager.worldManager.graph.fogNodes:
+                    #         self.destination.append(spot)
+                    #         self.destination.append(Enumerations.location_type.kiln)
+                    #         break
 
                     if len(self.destination) > 0:  # if kiln found, start building
                         self.entityManager.worldManager.needKiln = False

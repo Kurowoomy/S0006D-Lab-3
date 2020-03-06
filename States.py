@@ -92,7 +92,7 @@ class Discover:
             #                 (entity, character, Enumerations.message_type.treeAppeared, 0, character.pos)
             #
             # else:
-            if character in character.entityManager.worldManager.graph.groundNodes:
+            if character.pos in character.entityManager.worldManager.graph.groundNodes:
                 character.entityManager.worldManager.graph.freeGroundNodes.append(character.pos)
 
         for neighbour in character.entityManager.worldManager.graph.neighbours(character.pos):

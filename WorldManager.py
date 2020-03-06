@@ -8,7 +8,7 @@ import Algorithms
 
 
 class WorldManager:
-    def __init__(self, entityManager, graph):
+    def __init__(self, entityManager, graph, variables, moveVariables):
         self.entityManager = entityManager
         self.graph = graph
         self.trees = {}  # {(x, y) : Tree object}
@@ -22,12 +22,19 @@ class WorldManager:
         self.needKiln = True
         self.AStarHasOccurred = False
         self.charcoal = 0
-        self.buildingSpots = [(72, 90), (23, 90), (72, 37), (26, 11)]
+        # variables and moveVariables
+        self.charcoalGoal = variables["charcoalGoal"]
+        self.pathIterationsPerUpdate = variables["pathIterationsPerUpdate"]
+        self.buildingSpots = []
+        for spot in variables["buildingSpots"]:
+            self.buildingSpots.append(tuple(spot))
+        self.maxDistanceTreeFromWorker = variables["maxDistanceTreeFromWorker"]
+        self.workerPathsPerDiscoverer = variables["workerPathsPerDiscoverer"]
+
         # path finding
         self.pathsToFind = []
         self.discoverPathsToFind = []
         self.craftsmanPathsToFind = []
-        self.iterationsPerUpdate = 15
         self.iterationsSoFar = 0
         self.pathsFoundForWorkers = 0
 
@@ -245,7 +252,8 @@ class WorldManager:
             self.craftsmanPath = self.craftsmanAStarPath
             self.craftsmanCostSoFar = self.craftsmanAStarCostSoFar
 
-        elif len(self.pathsToFind) > 0 and self.pathsFoundForWorkers <= 5:  # 0:entity, 1:graph, 2:start, 3:goal
+        elif len(self.pathsToFind) > 0 and self.pathsFoundForWorkers <= self.pathIterationsPerUpdate:
+            # 0:entity, 1:graph, 2:start, 3:goal
 
             # if self.pathsToFind[0][1][0].occupation == "discoverer":
             #     if len(self.priorityQ) == 0:  # new entity
@@ -349,7 +357,7 @@ class WorldManager:
                     self.AStarPath.clear()
                     self.AStarCostSoFar.clear()
                     heapq.heappop(self.pathsToFind)[1]
-                    if self.pathsFoundForWorkers > 5:
+                    if self.pathsFoundForWorkers > self.pathIterationsPerUpdate:
                         self.pathsFoundForWorkers = 0
                     else:
                         self.pathsFoundForWorkers += 1
@@ -384,7 +392,7 @@ class WorldManager:
                     self.path.clear()
                     self.costSoFar.clear()
                     heapq.heappop(self.pathsToFind)[1]
-                    if self.pathsFoundForWorkers > 5:
+                    if self.pathsFoundForWorkers > self.pathIterationsPerUpdate:
                         self.pathsFoundForWorkers = 0
                     else:
                         self.pathsFoundForWorkers += 1

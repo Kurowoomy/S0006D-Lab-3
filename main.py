@@ -10,7 +10,6 @@ import json
 
 f = open("variables.json")
 variables = json.load(f)
-print(variables["speed"])  # yay it works!
 
 pygame.init()
 screen = pygame.display.set_mode((1080, 1080))
@@ -19,13 +18,13 @@ parser = Parser.Parser()
 worldManager = WorldManager.WorldManager(EntityManager.EntityManager(), Graph.Graph())
 
 worldManager.entityManager.worldManager = worldManager
-mapName = "Lab3Map.txt"
+mapName = variables["mainVariables"]["mapName"]
 worldManager.graph.loadToGraph(mapName)
 worldManager.graph.setFog()
-worldManager.graph.setStartPositions((75, 96))
+worldManager.graph.setStartPositions(tuple(variables["mainVariables"]["startPosition"]))
 
 # create entities
-entityAmount = 50
+entityAmount = variables["mainVariables"]["entityAmount"]
 startPosIndex = 0
 ID = 0
 for entity in range(entityAmount):
@@ -42,10 +41,11 @@ for entity in range(entityAmount):
     ID += 1
 
 # create world
-for tree in range(5):
+for tree in range(variables["mainVariables"]["treeAmount"]):
     worldManager.addNewTree()
 
-
+startGame = time.perf_counter()
+goalIsReached = False
 running = True
 while running:
     for event in pygame.event.get():
@@ -60,6 +60,10 @@ while running:
     # TODO: return path from worldManager.pathFinding to owner of path when it's done
     if time.perf_counter() - start >= 1:
         print("Plz don't take more than 1 second DD: I'll cry")
+    if worldManager.charcoal >= worldManager.charcoalGoal and not goalIsReached:
+        goalIsReached = True
+        print("Making", worldManager.charcoal, "charcoal took", time.perf_counter() - startGame, "seconds")
+
     start = time.perf_counter()
     worldManager.doPathFinding()
     if time.perf_counter() - start >= 1:

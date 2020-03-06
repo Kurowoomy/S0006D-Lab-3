@@ -2,13 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e8cd8ba4-f360-4213-b353-479d84d261fd" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/variables.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Entity.py" beforeDir="false" afterPath="$PROJECT_DIR$/Entity.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Enumerations.py" beforeDir="false" afterPath="$PROJECT_DIR$/Enumerations.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/States.py" beforeDir="false" afterPath="$PROJECT_DIR$/States.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/WorldManager.py" beforeDir="false" afterPath="$PROJECT_DIR$/WorldManager.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/variables.json" beforeDir="false" afterPath="$PROJECT_DIR$/variables.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -115,46 +114,46 @@
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
     <state x="740" y="341" key="FileChooserDialogImpl/0.0.1920.1170@0.0.1920.1170" timestamp="1582730053358" />
-    <state width="1069" height="258" key="GridCell.Tab.0.bottom" timestamp="1583429176361">
+    <state width="1067" height="258" key="GridCell.Tab.0.bottom" timestamp="1583487257655">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
-    <state width="1069" height="258" key="GridCell.Tab.0.bottom/0.0.1920.1170@0.0.1920.1170" timestamp="1583429176361" />
-    <state width="1069" height="258" key="GridCell.Tab.0.center" timestamp="1583429176361">
+    <state width="1067" height="258" key="GridCell.Tab.0.bottom/0.0.1920.1170@0.0.1920.1170" timestamp="1583487257655" />
+    <state width="1067" height="258" key="GridCell.Tab.0.center" timestamp="1583487257655">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
-    <state width="1069" height="258" key="GridCell.Tab.0.center/0.0.1920.1170@0.0.1920.1170" timestamp="1583429176361" />
-    <state width="1069" height="258" key="GridCell.Tab.0.left" timestamp="1583429176361">
+    <state width="1067" height="258" key="GridCell.Tab.0.center/0.0.1920.1170@0.0.1920.1170" timestamp="1583487257655" />
+    <state width="1067" height="258" key="GridCell.Tab.0.left" timestamp="1583487257655">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
-    <state width="1069" height="258" key="GridCell.Tab.0.left/0.0.1920.1170@0.0.1920.1170" timestamp="1583429176361" />
-    <state width="1069" height="258" key="GridCell.Tab.0.right" timestamp="1583429176361">
+    <state width="1067" height="258" key="GridCell.Tab.0.left/0.0.1920.1170@0.0.1920.1170" timestamp="1583487257655" />
+    <state width="1067" height="258" key="GridCell.Tab.0.right" timestamp="1583487257655">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
-    <state width="1069" height="258" key="GridCell.Tab.0.right/0.0.1920.1170@0.0.1920.1170" timestamp="1583429176361" />
-    <state width="1069" height="258" key="GridCell.Tab.1.bottom" timestamp="1583429176318">
+    <state width="1067" height="258" key="GridCell.Tab.0.right/0.0.1920.1170@0.0.1920.1170" timestamp="1583487257655" />
+    <state width="1067" height="258" key="GridCell.Tab.1.bottom" timestamp="1583487257610">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
-    <state width="1069" height="258" key="GridCell.Tab.1.bottom/0.0.1920.1170@0.0.1920.1170" timestamp="1583429176318" />
-    <state width="1069" height="258" key="GridCell.Tab.1.center" timestamp="1583429176318">
+    <state width="1067" height="258" key="GridCell.Tab.1.bottom/0.0.1920.1170@0.0.1920.1170" timestamp="1583487257610" />
+    <state width="1067" height="258" key="GridCell.Tab.1.center" timestamp="1583487257610">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
-    <state width="1069" height="258" key="GridCell.Tab.1.center/0.0.1920.1170@0.0.1920.1170" timestamp="1583429176318" />
-    <state width="1069" height="258" key="GridCell.Tab.1.left" timestamp="1583429176318">
+    <state width="1067" height="258" key="GridCell.Tab.1.center/0.0.1920.1170@0.0.1920.1170" timestamp="1583487257610" />
+    <state width="1067" height="258" key="GridCell.Tab.1.left" timestamp="1583487257610">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
-    <state width="1069" height="258" key="GridCell.Tab.1.left/0.0.1920.1170@0.0.1920.1170" timestamp="1583429176318" />
-    <state width="1069" height="258" key="GridCell.Tab.1.right" timestamp="1583429176318">
+    <state width="1067" height="258" key="GridCell.Tab.1.left/0.0.1920.1170@0.0.1920.1170" timestamp="1583487257610" />
+    <state width="1067" height="258" key="GridCell.Tab.1.right" timestamp="1583487257610">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
-    <state width="1069" height="258" key="GridCell.Tab.1.right/0.0.1920.1170@0.0.1920.1170" timestamp="1583429176318" />
+    <state width="1067" height="258" key="GridCell.Tab.1.right/0.0.1920.1170@0.0.1920.1170" timestamp="1583487257610" />
     <state x="0" y="232" key="SettingsEditor" timestamp="1582825855806">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
     <state x="0" y="232" key="SettingsEditor/0.0.1920.1170@0.0.1920.1170" timestamp="1582825855806" />
-    <state x="1102" y="341" width="768" height="503" key="dock-window-1" timestamp="1583429265403">
+    <state x="1102" y="341" width="768" height="503" key="dock-window-1" timestamp="1583490243569">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
-    <state x="1102" y="341" width="768" height="503" key="dock-window-1/0.0.1920.1170@0.0.1920.1170" timestamp="1583429265403" />
+    <state x="1102" y="341" width="768" height="503" key="dock-window-1/0.0.1920.1170@0.0.1920.1170" timestamp="1583490243569" />
     <state x="143" y="263" width="672" height="678" key="search.everywhere.popup" timestamp="1582905515694">
       <screen x="0" y="0" width="1920" height="1170" />
     </state>
@@ -190,17 +189,17 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/WorldManager.py</url>
-          <line>374</line>
+          <line>382</line>
           <option name="timeStamp" value="427" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/WorldManager.py</url>
-          <line>339</line>
+          <line>347</line>
           <option name="timeStamp" value="432" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/WorldManager.py</url>
-          <line>416</line>
+          <line>424</line>
           <option name="timeStamp" value="434" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -230,8 +229,18 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/WorldManager.py</url>
-          <line>387</line>
+          <line>395</line>
           <option name="timeStamp" value="533" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Entity.py</url>
+          <line>405</line>
+          <option name="timeStamp" value="535" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/WorldManager.py</url>
+          <line>29</line>
+          <option name="timeStamp" value="536" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
