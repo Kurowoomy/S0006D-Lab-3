@@ -103,6 +103,11 @@ class Graph:
             self.freeGroundNodes.append(posNode)
             self.fogNodes.remove(posNode)
 
+    def setUnreachablePositions(self, unReachableNodes):
+        for node in unReachableNodes:
+            self.fogNodes.remove(tuple(node))
+            self.nonWalkables.append(tuple(node))
+
     def setFog(self):
         for node in self.swampNodes:
             self.fogNodes.append(node)

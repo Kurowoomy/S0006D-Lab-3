@@ -127,21 +127,24 @@ class Discover:
                 if not character.entityManager.worldManager.AStarHasOccurred:
                     # find next fogNode
                     character.variables["nextFogNode"], path = Algorithms.findNearestFogNodeBFS \
-                        (character.entityManager.worldManager.graph, character.pos)
+                        (character.entityManager.worldManager.graph, character.pos,
+                         character.entityVariables["maxLoopsForBFS"])
 
-                    if character.variables["nextFogNode"] is None or \
-                            len(character.entityManager.worldManager.graph.occupiedNodes) == \
-                            len(character.entityManager.worldManager.graph.fogNodes):
+                    if character.variables["nextFogNode"] is None:  # or \
+                        # len(character.entityManager.worldManager.graph.occupiedNodes) == \
+                        # len(character.entityManager.worldManager.graph.fogNodes):
                         print("No path found. Discoverer with ID", character.ID, "is now idle")
                         character.variables["nextFogNode"] = None
                         character.route.clear()
                         character.stateMachine.changeState(States.idle)
 
                     else:  # if nextFogNode is found
-                        character.entityManager.worldManager.graph.occupiedNodes.append(character.variables["nextFogNode"])
+                        character.entityManager.worldManager.graph.occupiedNodes.append(
+                            character.variables["nextFogNode"])
                         # set neighbours to nextFogNode goal to occupiedNodes as well.
                         for neighbour in \
-                                character.entityManager.worldManager.graph.neighbours(character.variables["nextFogNode"]):
+                                character.entityManager.worldManager.graph.neighbours(
+                                    character.variables["nextFogNode"]):
                             if neighbour in character.entityManager.worldManager.graph.fogNodes:
                                 character.entityManager.worldManager.graph.occupiedNodes.append(neighbour)
 
@@ -196,10 +199,24 @@ class Discover:
                 if len(character.route) <= 0:
                     pass  # waiting for doPathFinding to finish
                 elif character.route[0] == (0, 0):
-                    print("No path found. Discoverer with ID", character.ID, "is now idle")
+                    # trying to reach something that's surrounded by nonWalkables. Remove it from fogNodes and
+                    # remove nextFogNode from occupied and its neighbours with fog
+                    if character.variables["nextFogNode"] in character.entityManager.worldManager.graph.fogNodes:
+                        character.entityManager.worldManager.graph.fogNodes.remove(character.variables["nextFogNode"])
+                        if character.variables["nextFogNode"] in \
+                                character.entityManager.worldManager.graph.occupiedNodes:
+                            character.entityManager.worldManager.graph.occupiedNodes.remove(
+                                character.variables["nextFogNode"])
+                    for neighbour in character.entityManager.worldManager.graph.neighbours(
+                            character.variables["nextFogNode"]):
+                        if neighbour in character.entityManager.worldManager.graph.fogNodes:
+                            character.entityManager.worldManager.graph.fogNodes.remove(neighbour)
+                            if neighbour in character.entityManager.worldManager.graph.occupiedNodes:
+                                character.entityManager.worldManager.graph.occupiedNodes.remove(neighbour)
+
+                    print("No path found. Discoverer with ID", character.ID, "tries to find new fogNode")
                     character.variables["nextFogNode"] = None
                     character.route.clear()
-                    character.stateMachine.changeState(States.idle)
                 else:
                     character.variables["hasMoved"] = True
                     character.move(character.route[0], character.entityManager.worldManager.graph)

@@ -32,6 +32,7 @@ class WorldManager:
         self.maxDistanceTreeFromWorker = variables["maxDistanceTreeFromWorker"]
         self.workerPathsPerDiscoverer = variables["workerPathsPerDiscoverer"]
         self.maxDiscovererAmount = variables["maxDiscovererAmount"]
+        self.minimumBuildings = variables["minimumBuildings"]
 
         self.moveVariables = moveVariables
 
@@ -83,15 +84,15 @@ class WorldManager:
                 if not builder.isWorking and len(builder.variables["items"]) >= \
                         builder.entityVariables["treesPerBuilding"]:
                     # set destination to freeGroundNode
-                    while len(self.destination) > 0:
-                        self.destination.pop(0)
-                    self.destination.append(random.choice(self.entityManager.worldManager.graph.freeGroundNodes))
-                    if self.destination[0] in self.entityManager.worldManager.graph.freeGroundNodes:
-                        self.entityManager.worldManager.graph.freeGroundNodes.remove(self.destination[0])
-                        self.destination.append(Enumerations.location_type.kiln)  # add it's location if found
+                    while len(builder.destination) > 0:
+                        builder.destination.pop(0)
+                    builder.destination.append(random.choice(self.graph.freeGroundNodes))
+                    if builder.destination[0] in self.graph.freeGroundNodes:
+                        self.graph.freeGroundNodes.remove(builder.destination[0])
+                        builder.destination.append(Enumerations.location_type.kiln)  # add it's location if found
                     else:  # if not found, make destination empty again
-                        while len(self.destination) > 0:
-                            self.destination.pop(0)
+                        while len(builder.destination) > 0:
+                            builder.destination.pop(0)
                     # look for free buildingSpot not in fogNode
                     # while len(builder.destination) > 0:
                     #     builder.destination.pop(0)
@@ -494,6 +495,7 @@ class WorldManager:
                 self.discoverPath.clear()
                 self.discoverCostSoFar.clear()
                 heapq.heappop(self.discoverPathsToFind)[1]
+                self.pathsFoundForWorkers = 0
                 if len(self.discoverPathsToFind) > 0:
                     self.doPathFinding()
                 self.iterationsSoFar = 0
@@ -580,3 +582,6 @@ class WorldManager:
                 self.discoverPriorityQ = self.discoverAStarPriorityQ
                 self.discoverPath = self.discoverAStarPath
                 self.discoverCostSoFar = self.discoverAStarCostSoFar
+
+        else:
+            self.pathsFoundForWorkers = 0

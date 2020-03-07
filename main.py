@@ -23,6 +23,7 @@ mapName = variables["mainVariables"]["mapName"]
 worldManager.graph.loadToGraph(mapName)
 worldManager.graph.setFog()
 worldManager.graph.setStartPositions(tuple(variables["mainVariables"]["startPosition"]))
+worldManager.graph.setUnreachablePositions(variables["mainVariables"]["unreachableNodes"])
 
 # create entities
 entityAmount = variables["mainVariables"]["entityAmount"]

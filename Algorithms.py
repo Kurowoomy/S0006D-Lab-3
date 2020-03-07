@@ -3,12 +3,11 @@ import heapq
 import random
 
 
-def findNearestFogNodeBFS(graph, start):
+def findNearestFogNodeBFS(graph, start, maxLoops):
     queue = collections.deque()
     queue.append(start)
     path = {tuple(start): None}
 
-    maxLoops = 3
     maxCost = maxLoops * 10 + maxLoops * 14
     currentNode = start
     neighbourOccupied = False
@@ -24,6 +23,9 @@ def findNearestFogNodeBFS(graph, start):
                     break
             if not neighbourOccupied:
                 return currentNode, path
+            else:
+                neighbourOccupied = False  # keep using BFS until maxLoops is reached, even if neighbours of
+                # first found fogNode is occupied
 
         for neighbour in graph.neighbours(currentNode):
             if tuple(neighbour) not in path:
@@ -34,14 +36,19 @@ def findNearestFogNodeBFS(graph, start):
 
 
 def findNearestRandomFogNode(graph):
-    if len(graph.fogNodes) <= len(graph.occupiedNodes):
-        return None
+    # if len(graph.fogNodes) <= len(graph.occupiedNodes):
+    #     return None
+    # change this part so it only returns None if it's checked all fogNodes
     notTestedNodes = graph.fogNodes.copy()
+    if len(notTestedNodes) <= 0:
+        return None
     currentNode = random.choice(notTestedNodes)
     notTestedNodes.remove(currentNode)
-    while currentNode in graph.occupiedNodes:
+    while currentNode in graph.occupiedNodes and len(notTestedNodes) > 0:
         currentNode = random.choice(notTestedNodes)
         notTestedNodes.remove(currentNode)
+    if len(notTestedNodes) <= 0 and currentNode in graph.occupiedNodes:
+        return None
     return currentNode
 
 

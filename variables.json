@@ -2,9 +2,10 @@
   "mainVariables":
   {
     "entityAmount": 50,
-    "treeAmount": 5,
-    "startPosition": [75, 96],
-    "mapName": "Lab3Map.txt"
+    "treeAmount": 10,
+    "startPosition": [96, 96],
+    "mapName": "Lab3Map.txt",
+    "unreachableNodes": [[48, 58], [49, 58], [50, 58], [51, 58], [52, 58], [53, 58]]
   },
   "entityVariables":
   {
@@ -15,9 +16,10 @@
     "timePerCharcoal": 30,
     "treesPerBuilding": 10,
     "timePerBuilding": 60,
-    "discovererUpgradeTime": 6,
-    "craftsManUpgradeTime": 12,
-    "maxDistanceNextFogNodeBFS": 72
+    "discovererUpgradeTime": 60,
+    "craftsManUpgradeTime": 120,
+    "maxDistanceNextFogNodeBFS": 72,
+    "maxLoopsForBFS": 5
   },
   "moveVariables":
   {
@@ -33,7 +35,8 @@
     "buildingSpots": [[72, 90], [23, 90], [72, 37], [26, 11]],
     "closeDistanceTreeFromWorker": 100,
     "maxDistanceTreeFromWorker": 300,
-    "workerPathsPerDiscoverer": 30,
-    "maxDiscovererAmount": 5
+    "workerPathsPerDiscoverer": 20,
+    "maxDiscovererAmount": 3,
+    "minimumBuildings": 5
   }
 }

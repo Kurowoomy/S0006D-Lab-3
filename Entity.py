@@ -263,10 +263,10 @@ class Entity:
                     self.variables["item"] = self.entityManager.worldManager.trees[self.pos]
                     self.entityManager.worldManager.trees.pop(self.pos, telegram.extraInfo)
                     # add new tree
-                    self.entityManager.worldManager.graph.freeGroundNodes.append(self.pos)
+                    # self.entityManager.worldManager.graph.freeGroundNodes.append(self.pos)
                     newTree = self.entityManager.worldManager.addNewTree()
-                    if newTree.pos in self.entityManager.worldManager.graph.freeGroundNodes:
-                        self.entityManager.worldManager.graph.freeGroundNodes.remove(newTree.pos)
+                    # if newTree.pos in self.entityManager.worldManager.graph.freeGroundNodes:
+                    #     self.entityManager.worldManager.graph.freeGroundNodes.remove(newTree.pos)
 
                     # if newTree.pos not in self.entityManager.worldManager.graph.fogNodes:
                     #     for entity in self.entityManager.workers:
@@ -394,6 +394,9 @@ class Entity:
             neighbours = self.entityManager.worldManager.graph.neighboursExceptFog(self.pos)
             self.move(neighbours[0], self.entityManager.worldManager.graph)
 
+            if len(self.entityManager.worldManager.buildings) < self.entityManager.worldManager.minimumBuildings:
+                self.entityManager.worldManager.needKiln = True
+
         elif telegram.msg == Enumerations.message_type.isUpgradedKilnManager:
             self.occupation = "kilnManager"
             self.entityManager.kilnManagers.append(self)
@@ -486,11 +489,28 @@ class Entity:
 
             # NOTE: might need backslashes
             elif self.occupation == "kilnManager":  # make more kilns if this kilnManager has enough trees
+                allIsBusy = True
                 if (len(self.variables["items"]) >
                         (self.entityVariables["treesPerCharcoal"] + self.entityVariables["treesPerCharcoal"]) and
                         self.variables["isMakingCharcoal"]) or \
                         (len(self.variables["items"]) > self.entityVariables["treesPerCharcoal"] and
                          not self.variables["isMakingCharcoal"]):
+                    # check if other kilnManagers have enough trees
+                    for kilnManager in self.entityManager.kilnManagers:
+                        if (len(kilnManager.variables["items"]) >
+                                (self.entityVariables["treesPerCharcoal"] + self.entityVariables["treesPerCharcoal"])
+                                and kilnManager.variables["isMakingCharcoal"]) or \
+                                (len(kilnManager.variables["items"]) > self.entityVariables["treesPerCharcoal"] and
+                                 not kilnManager.variables["isMakingCharcoal"]):
+                            pass  # keep allIsBusy True
+                        else:  # if one kilnManager doesn't have enough trees, break, don't make a new kiln
+                            allIsBusy = False
+                            break
+                else:  # don't make a new kiln if this kilnManager doesn't have enough trees
+                    allIsBusy = False
+
+                if allIsBusy:
+                    # start make kiln if no kilnManager needs trees
                     self.entityManager.worldManager.needKiln = True
 
         elif telegram.msg == Enumerations.message_type.giveMeTrees:
