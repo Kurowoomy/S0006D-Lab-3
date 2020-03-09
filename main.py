@@ -25,9 +25,10 @@ worldManager.graph.setFog()
 worldManager.graph.setStartPositions(tuple(variables["mainVariables"]["startPosition"]))
 worldManager.graph.setUnreachablePositions(variables["mainVariables"]["unreachableNodes"])
 
-# create entities
+# create entities------------
 entityAmount = variables["mainVariables"]["entityAmount"]
-startPosIndex = 0
+# graph has list of positions from 0 to 9 to represent the pos relative to the start pos in variables.json
+startPosIndex = 0  # increments after each entity creation up to 8. Start positions create a square of 3x3.
 ID = 0
 for entity in range(entityAmount):
     if startPosIndex >= 9:
@@ -42,7 +43,7 @@ for entity in range(entityAmount):
     startPosIndex += 1
     ID += 1
 
-# create world
+# create world----------------
 for tree in range(variables["mainVariables"]["treeAmount"]):
     worldManager.addNewTree()
 
@@ -56,20 +57,12 @@ while running:
 
     # update logic--------------------
     worldManager.messageDispatcher.dispatchDelayedMessages()
-    start = time.perf_counter()
     worldManager.update()
-    # TODO: create a pathFinding scripts/class to keep in worldManager and execute it evenly so it won't lag, and then
-    # TODO: return path from worldManager.pathFinding to owner of path when it's done
-    if time.perf_counter() - start >= 1:
-        print("Plz don't take more than 1 second DD: I'll cry")
     if worldManager.charcoal >= worldManager.charcoalGoal and not goalIsReached:
         goalIsReached = True
         print("Making", worldManager.charcoal, "charcoal took", time.perf_counter() - startGame, "seconds")
 
-    start = time.perf_counter()
     worldManager.doPathFinding()
-    if time.perf_counter() - start >= 1:
-        print("Path finder still takes too much time (1 second or more)")
 
     # drawing-------------------------
     screen.fill((255, 255, 255))
@@ -77,7 +70,5 @@ while running:
     parser.drawObjects(worldManager, screen)
     parser.drawFog(worldManager.graph.fogNodes, screen)
     parser.drawEntities(worldManager, screen)
-
-    # draw path
 
     pygame.display.update()

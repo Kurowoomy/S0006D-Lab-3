@@ -31,8 +31,7 @@ class MessageDispatcher:
         currentTime = time.perf_counter()
         if len(MessageDispatcher.priorityQ) > 0:
             while MessageDispatcher.priorityQ[0][1].dispatchTime <= currentTime:
-                # om priorityQ[0] är i listan
-                # dvs om msg är messageType och reciever är entity, ta bort meddelandet
+                # if priorityQ[0] is in toBeRemoved, remove message instead of sending it
                 MessageDispatcher.messageIsRemoved = False
                 for removeTuple in MessageDispatcher.toBeRemoved:
                     if MessageDispatcher.priorityQ[0][1].reciever is removeTuple[1] and \

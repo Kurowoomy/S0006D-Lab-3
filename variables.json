@@ -2,7 +2,7 @@
   "mainVariables":
   {
     "entityAmount": 50,
-    "treeAmount": 10,
+    "treeAmount": 20,
     "startPosition": [96, 96],
     "mapName": "Lab3Map.txt",
     "unreachableNodes": [[48, 58], [49, 58], [50, 58], [51, 58], [52, 58], [53, 58]]

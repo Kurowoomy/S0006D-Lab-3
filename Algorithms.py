@@ -36,9 +36,6 @@ def findNearestFogNodeBFS(graph, start, maxLoops):
 
 
 def findNearestRandomFogNode(graph):
-    # if len(graph.fogNodes) <= len(graph.occupiedNodes):
-    #     return None
-    # change this part so it only returns None if it's checked all fogNodes
     notTestedNodes = graph.fogNodes.copy()
     if len(notTestedNodes) <= 0:
         return None
@@ -73,60 +70,6 @@ def findPathToNode(graph, start, goal, moveVariables):
                 heapq.heappush(priorityQ, (priority, tuple(neighbour)))
 
     return path
-
-
-def findPathAvoidFog(graph, start, goal):
-    priorityQ = []
-    heapq.heappush(priorityQ, (0, tuple(start)))
-    path = {tuple(start): None}
-    costSoFar = {tuple(start): 0}
-
-    while len(priorityQ) != 0:
-        currentNode = heapq.heappop(priorityQ)[1]
-
-        if currentNode == tuple(goal):
-            break
-
-        for neighbour in graph.neighboursExceptFog(currentNode):
-            if neighbour not in graph.fogNodes:
-                newCost = costSoFar[currentNode] + tileDependentHeuristic(graph, neighbour, currentNode)
-                if (tuple(neighbour) not in costSoFar) or (newCost < costSoFar[tuple(neighbour)]):
-                    costSoFar[tuple(neighbour)] = newCost
-                    priority = newCost + heuristic(goal, neighbour)
-                    path[tuple(neighbour)] = currentNode
-                    heapq.heappush(priorityQ, (priority, tuple(neighbour)))
-            else:  # if neighbour is in a fogNode, plz don't choose this node I beg you :((
-                newCost = costSoFar[currentNode] + 10000000000000000000000000000000000
-                if (tuple(neighbour) not in costSoFar) or (newCost < costSoFar[tuple(neighbour)]):
-                    costSoFar[tuple(neighbour)] = newCost
-                    priority = newCost + heuristic(goal, neighbour)
-                    path[tuple(neighbour)] = currentNode
-                    heapq.heappush(priorityQ, (priority, tuple(neighbour)))
-
-    return path
-
-
-def findPathAndDistance(graph, start, goal):
-    priorityQ = []
-    heapq.heappush(priorityQ, (0, tuple(start)))
-    path = {tuple(start): None}
-    costSoFar = {tuple(start): 0}
-
-    while len(priorityQ) != 0:
-        currentNode = heapq.heappop(priorityQ)[1]
-
-        if currentNode == tuple(goal):
-            break
-
-        for neighbour in graph.neighbours(currentNode):
-            newCost = costSoFar[currentNode] + tileDependentHeuristic(graph, neighbour, currentNode)
-            if (tuple(neighbour) not in costSoFar) or (newCost < costSoFar[tuple(neighbour)]):
-                costSoFar[tuple(neighbour)] = newCost
-                priority = newCost + heuristic(goal, neighbour)
-                path[tuple(neighbour)] = currentNode
-                heapq.heappush(priorityQ, (priority, tuple(neighbour)))
-
-    return path, costSoFar[tuple(goal)]
 
 
 def heuristic(goal, next):
@@ -166,7 +109,7 @@ def getRoute(start, goal, path):
         if node is None:
             print("node: Nonetype object :((")
         if path[node] is None:
-            print("path[", node, "]: Nonetype object :((")  # TODO: fixa denna bugg
+            print("path[", node, "]: Nonetype object :((")
         node = tuple(path[node])
         route.append(node)
 
